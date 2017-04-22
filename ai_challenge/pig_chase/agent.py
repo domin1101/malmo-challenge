@@ -30,9 +30,43 @@ from six.moves import range
 from malmopy.agent import AStarAgent
 from malmopy.agent import QLearnerAgent, BaseAgent, RandomAgent
 from malmopy.agent.gui import GuiAgent
+from malmopy.model import BaseModel
 
 P_FOCUSED = .75
 CELL_WIDTH = 33
+
+
+class EvolutionAgent(BaseAgent):
+    def __init__(self, name, nb_actions, model, visualizer=None):
+
+        assert isinstance(model, BaseModel), 'model should inherit from QModel'
+
+        super(EvolutionAgent, self).__init__(name, nb_actions, visualizer)
+
+        self._model = model
+        self._actions_taken = 0
+
+        # Stats related
+        self._stats_rewards = []
+
+    def act(self, new_state, reward, done, is_training=False):
+
+        # select the next action
+        y = self._model.evaluate(new_state)
+        new_action = np.argmax(y>0.5)
+
+        self._actions_taken += 1
+
+        return new_action
+
+    def inject_summaries(self, idx):
+        if len(self._stats_rewards) > 0:
+            self.visualize(idx, "%s/episode mean reward" % self.name,
+                           np.asscalar(np.mean(self._stats_rewards)))
+
+            # Reset
+            self._stats_rewards = []
+
 
 
 class PigChaseQLearnerAgent(QLearnerAgent):

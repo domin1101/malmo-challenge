@@ -31,6 +31,6 @@ setup(
     author='Microsoft Research Cambridge',
     author_email='',
     description='Malmo Collaborative AI Challenge task and example code',
-    install_requires=['future', 'numpy>=1.11.0', 'six>=0.10.0', 'pandas', 'Pillow'],
+    install_requires=['future', 'numpy>=1.11.0', 'six>=0.10.0', 'pandas', 'Pillow', 'tensorflow'],
     extras_require=extras
 )
