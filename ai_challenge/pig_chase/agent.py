@@ -67,6 +67,9 @@ class EvolutionAgent(BaseAgent):
             # Reset
             self._stats_rewards = []
 
+    def set_model(self, model):
+        self._model = model
+
 
 
 class PigChaseQLearnerAgent(QLearnerAgent):

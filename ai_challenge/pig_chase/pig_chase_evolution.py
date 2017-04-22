@@ -32,9 +32,9 @@ try:
     from malmopy.visualization.tensorboard.cntk import CntkConverter
 except ImportError:
     print('Cannot import tensorboard, using ConsoleVisualizer.')
-    from malmopy.visualization import ConsoleVisualizer
 
-from common import parse_clients_args, visualize_training, ENV_AGENT_NAMES, ENV_TARGET_NAMES
+from malmopy.visualization import ConsoleVisualizer
+from common import parse_clients_args, visualize_evolution, ENV_AGENT_NAMES, ENV_TARGET_NAMES
 from agent import PigChaseChallengeAgent, FocusedAgent, EvolutionAgent
 from environment import PigChaseEnvironment, PigChaseSymbolicStateBuilder, PigChaseTopDownStateBuilder
 
@@ -46,95 +46,107 @@ BASELINES_FOLDER = 'results/baselines/pig_chase/%s/%s'
 EPOCH_SIZE = 100
 
 
-def agent_factory(name, role, baseline_agent, clients, max_epochs,
-                  logdir, visualizer):
+def agent_factory(name, role, baseline_agent, clients, matches,
+                  logdir, visualizer, agents):
 
     assert len(clients) >= 2, 'Not enough clients (need at least 2)'
     clients = parse_clients_args(clients)
 
     builder = PigChaseSymbolicStateBuilder()
 
-    if role == 0:
+    agent_index = 0
 
-        env = PigChaseEnvironment(clients, builder, role=role,
-                                  randomize_positions=True)
-        agent = PigChaseChallengeAgent(name)
+    env = PigChaseEnvironment(clients, PigChaseTopDownStateBuilder(True), role=role, randomize_positions=True)
 
-        if type(agent.current_agent) == RandomAgent:
-            agent_type = PigChaseEnvironment.AGENT_TYPE_1
-        else:
-            agent_type = PigChaseEnvironment.AGENT_TYPE_2
-        obs = env.reset(agent_type)
 
-        reward = 0
-        agent_done = False
+    obs = env.reset()
+    reward = 0
+    agent_done = False
+    viz_rewards = []
 
-        while True:
+    agent = agents[agent_index]
+    match = 0
+    while True:
 
-            # select an action
-            action = agent.act(obs, reward, agent_done, is_training=True)
+        # check if env needs reset
+        if env.done:
 
-            # reset if needed
-            if env.done:
-                if type(agent.current_agent) == RandomAgent:
-                    agent_type = PigChaseEnvironment.AGENT_TYPE_1
-                else:
-                    agent_type = PigChaseEnvironment.AGENT_TYPE_2
-                obs = env.reset(agent_type)
+            visualize_evolution(visualizer, role, agent_index, viz_rewards)
+            viz_rewards = []
 
-            # take a step
-            obs, reward, agent_done = env.do(action)
+            if role == 0:
+                match = match + 1
 
-    else:
-        env = PigChaseEnvironment(clients, PigChaseTopDownStateBuilder(True),
-                                  role=role, randomize_positions=True)
+            if role != 0 or match >= matches:
+                if role == 0:
+                    match = 0
+
+                agent_index = agent_index + 1
+                if agent_index >= len(agents):
+                    if role == 0:
+                        break
+                    else:
+                        match = match + 1
+                        if match >= matches:
+                            break
+                        else:
+                            agent_index = 0
+
+                agent = agents[agent_index]
+
+            obs = env.reset()
+
+        # select an action
+        action = agent.act(obs, reward, agent_done, is_training=True)
+        # take a step
+        obs, reward, agent_done = env.do(action)
+        viz_rewards.append(reward)
+
+
+def run_experiment(threads):
+    assert len(threads) == 2, 'Not enough agents (required: 2, got: %d)'\
+                % len(threads)
+
+    population = []
+    parasites = []
+
+    env = PigChaseEnvironment(args.clients, PigChaseTopDownStateBuilder(True), role=0, randomize_positions=True)
+
+    for i in range(4):
         chain = MLPTensor(18 * 18, env.available_actions, 128)
         model = NeuralNetwork(chain, -1)
-        agent = EvolutionAgent(name, env.available_actions, model, visualizer)
+        population.append(EvolutionAgent(i, env.available_actions, model, visualizer))
 
-        obs = env.reset()
-        reward = 0
-        agent_done = False
-        viz_rewards = []
+    for i in range(4):
+        chain = MLPTensor(18 * 18, env.available_actions, 128)
+        model = NeuralNetwork(chain, -1)
+        parasites.append(EvolutionAgent(i, env.available_actions, model, visualizer))
 
-        max_training_steps = EPOCH_SIZE * max_epochs
-        for step in range(1, max_training_steps+1):
-
-            # check if env needs reset
-            if env.done:
-
-                visualize_training(visualizer, step, viz_rewards)
-                viz_rewards = []
-                obs = env.reset()
-
-            # select an action
-            action = agent.act(obs, reward, agent_done, is_training=True)
-            # take a step
-            obs, reward, agent_done = env.do(action)
-            viz_rewards.append(reward)
-
-            agent.inject_summaries(step)
-
-
-def run_experiment(agents_def):
-    assert len(agents_def) == 2, 'Not enough agents (required: 2, got: %d)'\
-                % len(agents_def)
+    current_pop1 = population
+    current_pop2 = parasites
 
     processes = []
-    for agent in agents_def:
-        p = Thread(target=agent_factory, kwargs=agent)
+    for thread in threads:
+        if thread['role'] == 0:
+            thread['agents'] = current_pop1
+            thread['matches'] = len(current_pop2)/2
+        else:
+            thread['agents'] = current_pop2[:len(current_pop2)/2]
+            thread['matches'] = len(current_pop1)
+
+        p = Thread(target=agent_factory, kwargs=thread)
         p.daemon = True
         p.start()
 
         # Give the server time to start
-        if agent['role'] == 0:
+        if thread['role'] == 0:
             sleep(1)
 
         processes.append(p)
 
     try:
         # wait until only the challenge agent is left
-        while active_count() > 2:
+        while processes[0].isAlive() or processes[1].isAlive():
             sleep(0.1)
     except KeyboardInterrupt:
         print('Caught control-c - shutting down.')
@@ -153,16 +165,17 @@ if __name__ == '__main__':
     args = arg_parser.parse_args()
 
     logdir = BASELINES_FOLDER % (args.type, datetime.utcnow().isoformat())
-    if 'malmopy.visualization.tensorboard' in sys.modules:
+    if 'malmopy.visualization.tensorboard' in sys.modules and False:
         visualizer = TensorboardVisualizer()
         visualizer.initialize(logdir, None)
     else:
         visualizer = ConsoleVisualizer()
 
-    agents = [{'name': agent, 'role': role, 'baseline_agent': args.type,
-               'clients': args.clients, 'max_epochs': args.epochs,
+
+    threads = [{'name': agent, 'role': role, 'baseline_agent': args.type,
+               'clients': args.clients,
                'logdir': logdir, 'visualizer': visualizer}
               for role, agent in enumerate(ENV_AGENT_NAMES)]
 
-    run_experiment(agents)
+    run_experiment(threads)
 
