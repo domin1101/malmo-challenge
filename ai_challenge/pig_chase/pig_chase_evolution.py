@@ -25,6 +25,7 @@ from os import path
 from threading import Thread, active_count
 from time import sleep
 
+from evolution import Evolution
 from model import NeuralNetwork, MLPTensor
 from malmopy.agent import RandomAgent
 try:
@@ -72,9 +73,9 @@ def agent_factory(name, role, baseline_agent, clients, matches,
         if env.done:
 
             visualize_evolution(visualizer, role, agent_index, viz_rewards)
-            viz_rewards = []
 
             if role == 0:
+                agents[agent_index].rewards.append(sum(viz_rewards))
                 match = match + 1
 
             if role != 0 or match >= matches:
@@ -94,6 +95,7 @@ def agent_factory(name, role, baseline_agent, clients, matches,
 
                 agent = agents[agent_index]
 
+            viz_rewards = []
             obs = env.reset()
 
         # select an action
@@ -112,15 +114,13 @@ def run_experiment(threads):
 
     env = PigChaseEnvironment(args.clients, PigChaseTopDownStateBuilder(True), role=0, randomize_positions=True)
 
-    for i in range(4):
-        chain = MLPTensor(18 * 18, env.available_actions, 128)
-        model = NeuralNetwork(chain, -1)
-        population.append(EvolutionAgent(i, env.available_actions, model, visualizer))
+    evolution = Evolution(visualizer, env)
 
     for i in range(4):
-        chain = MLPTensor(18 * 18, env.available_actions, 128)
-        model = NeuralNetwork(chain, -1)
-        parasites.append(EvolutionAgent(i, env.available_actions, model, visualizer))
+        population.append(evolution.create(i))
+
+    for i in range(4):
+        parasites.append(evolution.create(i))
 
     current_pop1 = population
     current_pop2 = parasites
@@ -150,6 +150,10 @@ def run_experiment(threads):
             sleep(0.1)
     except KeyboardInterrupt:
         print('Caught control-c - shutting down.')
+
+    print(population[0].rewards)
+
+    evolution.processGeneration(population)
 
 
 if __name__ == '__main__':

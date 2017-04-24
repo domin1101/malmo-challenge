@@ -34,6 +34,11 @@ class MLPTensor:
         initial = tf.constant(0.1, shape=shape)
         return tf.Variable(initial)
 
+    def copyWeightsFrom(self, other):
+        copy = self.W_1.assign(other.W_1), self.W_2.assign(other.W_2), self.b_1.assign(other.b_1), self.b_2.assign(other.b_2)
+        self.sess.run(copy)
+
+
 
 class NeuralNetwork(BaseModel):
     def __init__(self, model, device_id=-1):
@@ -52,5 +57,9 @@ class NeuralNetwork(BaseModel):
         environment = environment.ravel()[None, :]
 
         return self._model(environment)
+
+    def copyWeightsFrom(self, neuralNetwork):
+        self._model.copyWeightsFrom(neuralNetwork._model)
+
 
 

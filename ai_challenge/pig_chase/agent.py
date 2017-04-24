@@ -37,6 +37,8 @@ CELL_WIDTH = 33
 
 
 class EvolutionAgent(BaseAgent):
+
+
     def __init__(self, name, nb_actions, model, visualizer=None):
 
         assert isinstance(model, BaseModel), 'model should inherit from QModel'
@@ -45,6 +47,7 @@ class EvolutionAgent(BaseAgent):
 
         self._model = model
         self._actions_taken = 0
+        self.rewards = []
 
         # Stats related
         self._stats_rewards = []
@@ -67,9 +70,8 @@ class EvolutionAgent(BaseAgent):
             # Reset
             self._stats_rewards = []
 
-    def set_model(self, model):
-        self._model = model
-
+    def copyParametersFrom(self, agent):
+        self._model.copyWeightsFrom(agent._model)
 
 
 class PigChaseQLearnerAgent(QLearnerAgent):
