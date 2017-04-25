@@ -1,7 +1,7 @@
 import random
 
-from ai_challenge.pig_chase.agent import EvolutionAgent
-from ai_challenge.pig_chase.model import MLPTensor, NeuralNetwork
+from agent import EvolutionAgent
+from model import MLPTensor, NeuralNetwork
 
 
 class Evolution:
@@ -13,7 +13,7 @@ class Evolution:
         self._visualizer = visualizer
 
     def create(self, name):
-        chain = MLPTensor(18 * 18, self._env.available_actions, 128)
+        chain = MLPTensor(18 * 18, self._env.available_actions, [128])
         model = NeuralNetwork(chain, -1)
         return EvolutionAgent(name, self._env.available_actions, model, self._visualizer)
 
@@ -33,6 +33,7 @@ class Evolution:
     def mutateAgent(self, agent):
         newAgent = self.create(agent.name + 1)
         newAgent.copyParametersFrom(agent)
+        newAgent.mutate()
         return agent
 
     def processGeneration(self, agents):

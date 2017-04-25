@@ -105,6 +105,11 @@ def agent_factory(name, role, baseline_agent, clients, matches,
         viz_rewards.append(reward)
 
 
+def reset_agents(agents):
+    for agent in agents:
+        agent.rewards = []
+
+
 def run_experiment(threads):
     assert len(threads) == 2, 'Not enough agents (required: 2, got: %d)'\
                 % len(threads)
@@ -125,35 +130,40 @@ def run_experiment(threads):
     current_pop1 = population
     current_pop2 = parasites
 
-    processes = []
-    for thread in threads:
-        if thread['role'] == 0:
-            thread['agents'] = current_pop1
-            thread['matches'] = len(current_pop2)/2
-        else:
-            thread['agents'] = current_pop2[:len(current_pop2)/2]
-            thread['matches'] = len(current_pop1)
+    while True:
+        reset_agents(population)
+        reset_agents(parasites)
 
-        p = Thread(target=agent_factory, kwargs=thread)
-        p.daemon = True
-        p.start()
+        processes = []
+        for thread in threads:
+            if thread['role'] == 0:
+                thread['agents'] = current_pop1
+                thread['matches'] = len(current_pop2)/2
+            else:
+                thread['agents'] = current_pop2[:len(current_pop2)/2]
+                thread['matches'] = len(current_pop1)
 
-        # Give the server time to start
-        if thread['role'] == 0:
-            sleep(1)
+            p = Thread(target=agent_factory, kwargs=thread)
+            p.daemon = True
+            p.start()
 
-        processes.append(p)
+            # Give the server time to start
+            if thread['role'] == 0:
+                sleep(1)
 
-    try:
-        # wait until only the challenge agent is left
-        while processes[0].isAlive() or processes[1].isAlive():
-            sleep(0.1)
-    except KeyboardInterrupt:
-        print('Caught control-c - shutting down.')
+            processes.append(p)
 
-    print(population[0].rewards)
+        try:
+            # wait until only the challenge agent is left
+            while processes[0].isAlive() or processes[1].isAlive():
+                sleep(0.1)
+        except KeyboardInterrupt:
+            print('Caught control-c - shutting down.')
 
-    evolution.processGeneration(population)
+        evolution.processGeneration(population)
+
+        population, parasites = parasites, population
+
 
 
 if __name__ == '__main__':

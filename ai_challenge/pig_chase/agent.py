@@ -73,6 +73,9 @@ class EvolutionAgent(BaseAgent):
     def copyParametersFrom(self, agent):
         self._model.copyWeightsFrom(agent._model)
 
+    def mutate(self):
+        self._model.mutate()
+
 
 class PigChaseQLearnerAgent(QLearnerAgent):
     """A thin wrapper around QLearnerAgent that normalizes rewards to [-1,1]"""

@@ -19,6 +19,7 @@
 
     <ModSettings>
         <MsPerTick>4</MsPerTick>
+       <!-- <PrioritiseOffscreenRendering>true</PrioritiseOffscreenRendering>-->
     </ModSettings>
 
     <ServerSection>
