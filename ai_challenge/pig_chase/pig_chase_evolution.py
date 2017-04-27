@@ -101,6 +101,8 @@ def agent_factory(name, role, baseline_agent, clients, matches, logdir, visualiz
         obs, reward, agent_done = env.do(action, role)
         viz_rewards.append(reward)
 
+    env.end()
+
 
 def agent_factory_mock(name, role, baseline_agent, clients, matches, logdir, visualizer, agents):
     env = MockPigChaseEnvironment(clients, PigChaseTopDownStateBuilder(True), role=role, randomize_positions=True)

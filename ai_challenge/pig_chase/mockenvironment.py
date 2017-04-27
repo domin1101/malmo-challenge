@@ -98,6 +98,8 @@ class MockPigChaseEnvironment(PigChaseEnvironment):
         self.acquire_lock = Lock()
         self.is_waiting = Semaphore(0)
         self.first_lock = True
+        self.first_round = True
+        self.first_end = True
 
     @property
     def state(self):
@@ -130,6 +132,7 @@ class MockPigChaseEnvironment(PigChaseEnvironment):
         self.agents.append({'name': 'Agent_2', 'pos': pos[2], 'dir': np.random.choice(PigChaseEnvironment.VALID_YAW), 'steps': 25})
         self.entities = [self.agents[0], self.agents[1], self.pig]
         self.start_player = 0
+        self.first_end = True
 
         print("Reset env")
 
@@ -141,17 +144,17 @@ class MockPigChaseEnvironment(PigChaseEnvironment):
         missions."""
         print("in")
 
-        if not self.first_lock:
+        if not self.first_round:
             self.lock.release()
             with self.acquire_lock:
                 self.is_waiting.release()
                 self.lock.acquire()
             self.is_waiting.acquire()
 
-        if self.first_lock and role == 0 or self.done:
+        if self.first_round and role == 0 or self.done:
             self._construct_mission()
 
-        if not self.first_lock:
+        if not self.first_round:
             self.lock.release()
         with self.acquire_lock:
             if not self.first_lock:
@@ -204,7 +207,19 @@ class MockPigChaseEnvironment(PigChaseEnvironment):
             self.lock.acquire()
         self.is_waiting.acquire()
 
+        self.first_round = False
+
         return self.get_state(), -1, False
+
+    def end(self):
+        if self.first_end:
+            self.first_end = False
+            self.lock.release()
+            self.is_waiting.release()
+        else:
+            self.lock.release()
+        self.first_round = True
+        self.first_lock = True
 
     def get_state(self):
         buffer_shape = (len(self.DEFAULT_BOARD) * 2, len(self.DEFAULT_BOARD[0]) * 2)
