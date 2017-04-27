@@ -55,9 +55,9 @@ def agent_factory(name, role, baseline_agent, clients, matches, logdir, visualiz
 
     agent_index = 0
 
-    env = env or PigChaseEnvironment(clients, PigChaseTopDownStateBuilder(True), role=role, randomize_positions=True)
+    env = PigChaseEnvironment(clients, PigChaseTopDownStateBuilder(True), role=role, randomize_positions=True)
 
-    obs = env.reset(role)
+    obs = env.reset()
     reward = 0
     agent_done = False
     viz_rewards = []
@@ -93,28 +93,38 @@ def agent_factory(name, role, baseline_agent, clients, matches, logdir, visualiz
                 agent = agents[agent_index]
 
             viz_rewards = []
-            obs = env.reset(role)
+            obs = env.reset()
 
         # select an action
         action = agent.act(obs, reward, agent_done, is_training=True)
         # take a step
-        obs, reward, agent_done = env.do(action, role)
+        obs, reward, agent_done = env.do(action)
         viz_rewards.append(reward)
 
-    env.end()
 
 
-def agent_factory_mock(name, role, baseline_agent, clients, matches, logdir, visualizer, agents):
-    env = MockPigChaseEnvironment(clients, PigChaseTopDownStateBuilder(True), role=role, randomize_positions=True)
+def agent_factory_mock(population, parasites, env):
 
-    obs = env.reset()
     reward = 0
     agent_done = False
 
-    while not env.done:
-        action = agent.act(obs, reward, agent_done, is_training=True)
+    for key1, agent1 in enumerate(population):
+        for key2, agent2 in enumerate(parasites):
+            agents = [agent1, agent2]
 
-        obs, reward, agent_done = env.do(action)
+            obs = env.reset()
+            viz_rewards = [[], []]
+
+            while not env.done:
+                action = agents[env.current_player].act(obs, reward, agent_done, is_training=True)
+                obs, reward, agent_done = env.do(action)
+                viz_rewards[env.current_player].append(reward)
+
+            agents[0].rewards.append(sum(viz_rewards[0]))
+            agents[1].rewards.append(sum(viz_rewards[1]))
+
+            visualize_evolution(visualizer, role, key1, viz_rewards[0])
+            visualize_evolution(visualizer, role, key2, viz_rewards[1])
 
 
 def reset_agents(agents):
@@ -122,24 +132,24 @@ def reset_agents(agents):
         agent.rewards = []
 
 
-def run_experiment(threads):
+def run_experiment(threads, fast):
     assert len(threads) == 2, 'Not enough agents (required: 2, got: %d)'\
                 % len(threads)
 
     population = []
     parasites = []
 
-    if True:
+    if fast:
         env = MockPigChaseEnvironment(args.clients, PigChaseTopDownStateBuilder(True), role=0, randomize_positions=True)
     else:
         env = PigChaseEnvironment(args.clients, PigChaseTopDownStateBuilder(True), role=0, randomize_positions=True)
 
     evolution = Evolution(visualizer, env)
 
-    for i in range(4):
+    for i in range(150):
         population.append(evolution.create(i))
 
-    for i in range(4):
+    for i in range(150):
         parasites.append(evolution.create(i))
 
     current_pop1 = population
@@ -149,33 +159,38 @@ def run_experiment(threads):
         reset_agents(population)
         reset_agents(parasites)
 
-        processes = []
-        for thread in threads:
-            thread['env'] = env
-            if thread['role'] == 0:
-                thread['agents'] = current_pop1
-                thread['matches'] = len(current_pop2)/2
-            else:
-                thread['agents'] = current_pop2[:len(current_pop2)/2]
-                thread['matches'] = len(current_pop1)
+        if type(env) != MockPigChaseEnvironment:
+            processes = []
+            for thread in threads:
+                thread['env'] = env
 
-            p = Thread(target=agent_factory, kwargs=thread)
-            p.daemon = True
-            p.start()
+                if thread['role'] == 0:
+                    thread['agents'] = current_pop1
+                    thread['matches'] = len(current_pop2)/2
+                else:
+                    thread['agents'] = current_pop2[:len(current_pop2)/2]
+                    thread['matches'] = len(current_pop1)
 
-            # Give the server time to start
-            if thread['role'] == 0:
-                sleep(1)
+                p = Thread(target=agent_factory, kwargs=thread)
+                p.daemon = True
+                p.start()
 
-            processes.append(p)
+                # Give the server time to start
+                if thread['role'] == 0:
+                    sleep(1)
 
-        try:
-            # wait until only the challenge agent is left
-            while processes[0].isAlive() or processes[1].isAlive():
-                sleep(0.1)
-        except KeyboardInterrupt:
-            print('Caught control-c - shutting down.')
+                processes.append(p)
 
+            try:
+                # wait until only the challenge agent is left
+                while processes[0].isAlive() or processes[1].isAlive():
+                    sleep(0.1)
+            except KeyboardInterrupt:
+                print('Caught control-c - shutting down.')
+        else:
+            agent_factory_mock(population, parasites[:25], env)
+
+        print("Process generation")
         evolution.processGeneration(population)
 
         population, parasites = parasites, population
@@ -189,6 +204,7 @@ if __name__ == '__main__':
                             help='The type of baseline to run.')
     arg_parser.add_argument('-e', '--epochs', type=int, default=5,
                             help='Number of epochs to run.')
+    arg_parser.add_argument('--fast', dest='fast', action='store_true')
     arg_parser.add_argument('clients', nargs='*',
                             default=['127.0.0.1:10000', '127.0.0.1:10001'],
                             help='Minecraft clients endpoints (ip(:port)?)+')
@@ -207,5 +223,5 @@ if __name__ == '__main__':
                'logdir': logdir, 'visualizer': visualizer}
               for role, agent in enumerate(ENV_AGENT_NAMES)]
 
-    run_experiment(threads)
+    run_experiment(threads, args.fast)
 

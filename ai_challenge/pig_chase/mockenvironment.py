@@ -89,17 +89,14 @@ class MockPigChaseEnvironment(PigChaseEnvironment):
                  state_builder,
                  actions=ENV_ACTIONS,
                  role=0, exp_name="",
-                 human_speed=False, randomize_positions=False):
+                 human_speed=False, randomize_positions=False, debug_level=0):
 
         super(MockPigChaseEnvironment, self).__init__(remotes, state_builder, actions, role, exp_name, human_speed, randomize_positions)
         self.pig = []
         self.agents = []
-        self.lock = Lock()
-        self.acquire_lock = Lock()
-        self.is_waiting = Semaphore(0)
-        self.first_lock = True
-        self.first_round = True
-        self.first_end = True
+        self.current_player = 0
+        self.start_player = 0
+        self.debug_level = debug_level
 
     @property
     def state(self):
@@ -110,116 +107,99 @@ class MockPigChaseEnvironment(PigChaseEnvironment):
         """
         Done if we have caught the pig
         """
-        return self.agents[0]['steps'] == 0 or self.agents[1]['steps'] == 0
+        if self.start_player == self.current_player:
+            if self.agents[0]['pos'] in MockPigChaseEnvironment.LAPIS_BLOCKS or self.agents[1]['pos'] in MockPigChaseEnvironment.LAPIS_BLOCKS:
+                if self.debug_level > 0:
+                    print("Lapis end")
+                return True
+            if self.agents[0]['steps'] == 0 or self.agents[1]['steps'] == 0:
+                if self.debug_level > 0:
+                    print("Step end")
+                return True
+
+        return False
 
     def _construct_mission(self):
         # set agent helmet
         # set agent starting pos
-        pos = [PigChaseEnvironment.VALID_START_POSITIONS[i]
+        pos = [MockPigChaseEnvironment.VALID_START_POSITIONS[i]
                for i in np.random.choice(
-                range(len(PigChaseEnvironment.VALID_START_POSITIONS)),
+                range(len(MockPigChaseEnvironment.VALID_START_POSITIONS)),
                 3, replace=False)]
         while not (self._get_pos_dist(pos[0], pos[1]) > 1.1 and
                            self._get_pos_dist(pos[1], pos[2]) > 1.1 and
                            self._get_pos_dist(pos[0], pos[2]) > 1.1):
-            pos = [PigChaseEnvironment.VALID_START_POSITIONS[i]
+            pos = [MockPigChaseEnvironment.VALID_START_POSITIONS[i]
                    for i in np.random.choice(
-                    range(len(PigChaseEnvironment.VALID_START_POSITIONS)),
+                    range(len(MockPigChaseEnvironment.VALID_START_POSITIONS)),
                     3, replace=False)]
         self.pig = {'name': 'Pig', 'pos': pos[0], 'dir': 0}
         self.agents = []
-        self.agents.append({'name': 'Agent_1', 'pos': pos[1], 'dir': np.random.choice(PigChaseEnvironment.VALID_YAW), 'steps': 25})
-        self.agents.append({'name': 'Agent_2', 'pos': pos[2], 'dir': np.random.choice(PigChaseEnvironment.VALID_YAW), 'steps': 25})
+        self.agents.append({'name': 'Agent_1', 'pos': pos[1], 'dir': np.random.choice(MockPigChaseEnvironment.VALID_YAW), 'steps': 25})
+        self.agents.append({'name': 'Agent_2', 'pos': pos[2], 'dir': np.random.choice(MockPigChaseEnvironment.VALID_YAW), 'steps': 25})
         self.entities = [self.agents[0], self.agents[1], self.pig]
-        self.start_player = 0
-        self.first_end = True
+        self.current_player = np.random.randint(0, 1)
+        self.start_player = self.current_player
 
-        print("Reset env")
+        if self.debug_level > 0:
+            print("Reset env", self.agents[0]['pos'][0], self.agents[0]['pos'][1], self.agents[0]['dir'], self.agents[1]['pos'][0], self.agents[1]['pos'][1], self.agents[1]['dir'])
 
     def _get_pos_dist(self, pos1, pos2):
         return np.sqrt((pos1[0] - pos2[0]) ** 2 + (pos1[1] - pos2[1]) ** 2)
 
-    def reset(self, role, agent_type=None, agent_positions=None):
+    def reset(self, agent_type=None, agent_positions=None):
         """ Overrides reset() to allow changes in agent appearance between
         missions."""
-        print("in")
 
-        if not self.first_round:
-            self.lock.release()
-            with self.acquire_lock:
-                self.is_waiting.release()
-                self.lock.acquire()
-            self.is_waiting.acquire()
-
-        if self.first_round and role == 0 or self.done:
-            self._construct_mission()
-
-        if not self.first_round:
-            self.lock.release()
-        with self.acquire_lock:
-            if not self.first_lock:
-                self.is_waiting.release()
-            else:
-                self.first_lock = False
-            self.lock.acquire()
-        self.is_waiting.acquire()
+        self._construct_mission()
 
         return self.get_state()
        # return super(PigChaseEnvironment, self).reset()
 
     def get_dir_vec(self, dir):
         if dir == 0:
-            return [1, 0]
-        elif dir == 90:
             return [0, 1]
-        elif dir == 180:
+        elif dir == 90:
             return [-1, 0]
-        elif dir == 270:
+        elif dir == 180:
             return [0, -1]
+        elif dir == 270:
+            return [1, 0]
         else:
             raise ValueError("Dir not allowed")
 
-    def do(self, action, role):
+    def do(self, action):
         """
         Do the action
         """
-        print("Player", role, "Action", action)
+        if self.debug_level > 1:
+            print("Player", self.current_player, "Action", action)
 
         if action == 0:
-            new_pos = []
-            new_pos.append(self.agents[role]['pos'][0] + self.get_dir_vec(self.agents[role]['dir'])[0])
-            new_pos.append(self.agents[role]['pos'][1] + self.get_dir_vec(self.agents[role]['dir'])[1])
+            new_pos = (self.agents[self.current_player]['pos'][0] + self.get_dir_vec(self.agents[self.current_player]['dir'])[0],
+                       self.agents[self.current_player]['pos'][1] + self.get_dir_vec(self.agents[self.current_player]['dir'])[1])
 
             if new_pos in self.VALID_START_POSITIONS or new_pos in self.LAPIS_BLOCKS:
-                self.agents[role]['pos'] = new_pos
+                self.agents[self.current_player]['pos'] = new_pos
         elif action == 1:
-            self.agents[role]['dir'] = self.agents[role]['dir'] - 90
-            if self.agents[role]['dir'] < 0:
-                self.agents[role]['dir'] += 360
+            self.agents[self.current_player]['dir'] = self.agents[self.current_player]['dir'] - 90
+            if self.agents[self.current_player]['dir'] < 0:
+                self.agents[self.current_player]['dir'] += 360
         elif action == 2:
-            self.agents[role]['dir'] = (self.agents[role]['dir'] + 90) % 360
+            self.agents[self.current_player]['dir'] = (self.agents[self.current_player]['dir'] + 90) % 360
 
-        self.agents[role]['steps'] -= 1
+        self.agents[self.current_player]['steps'] -= 1
 
-        self.lock.release()
-        with self.acquire_lock:
-            self.is_waiting.release()
-            self.lock.acquire()
-        self.is_waiting.acquire()
+        reward = self._get_reward(self.agents[self.current_player])
 
-        self.first_round = False
+        self.current_player = 1 - self.current_player
+        return self.get_state(), -1 + reward, False
 
-        return self.get_state(), -1, False
-
-    def end(self):
-        if self.first_end:
-            self.first_end = False
-            self.lock.release()
-            self.is_waiting.release()
+    def _get_reward(self, agent):
+        if agent['pos'] in MockPigChaseEnvironment.LAPIS_BLOCKS:
+            return 5
         else:
-            self.lock.release()
-        self.first_round = True
-        self.first_lock = True
+            return 0
 
     def get_state(self):
         buffer_shape = (len(self.DEFAULT_BOARD) * 2, len(self.DEFAULT_BOARD[0]) * 2)
@@ -242,29 +222,71 @@ class MockPigChaseEnvironment(PigChaseEnvironment):
             # convert Minecraft yaw to 0=north, 1=west etc.
             agent_direction = ((((int(agent['dir']) - 45) % 360) // 90) - 1) % 4
 
+            if agent['name'] == 'Pig':
+                agent_name = agent['name']
+            else:
+                if self.agents[self.current_player] == agent:
+                    agent_name = 'Agent_2'
+                else:
+                    agent_name = 'Agent_1'
+
             if agent_direction == 0:
                 # facing north
-                agent_pattern[1, 0:2] = self.GRAY_PALETTE[agent['name']]
-                agent_pattern[0, 0:2] += self.GRAY_PALETTE[agent['name']]
+                agent_pattern[1, 0:2] = self.GRAY_PALETTE[agent_name]
+                agent_pattern[0, 0:2] += self.GRAY_PALETTE[agent_name]
                 agent_pattern[0, 0:2] /= 2.
             elif agent_direction == 1:
                 # west
-                agent_pattern[0:2, 1] = self.GRAY_PALETTE[agent['name']]
-                agent_pattern[0:2, 0] += self.GRAY_PALETTE[agent['name']]
+                agent_pattern[0:2, 1] = self.GRAY_PALETTE[agent_name]
+                agent_pattern[0:2, 0] += self.GRAY_PALETTE[agent_name]
                 agent_pattern[0:2, 0] /= 2.
             elif agent_direction == 2:
                 # south
-                agent_pattern[0, 0:2] = self.GRAY_PALETTE[agent['name']]
-                agent_pattern[1, 0:2] += self.GRAY_PALETTE[agent['name']]
+                agent_pattern[0, 0:2] = self.GRAY_PALETTE[agent_name]
+                agent_pattern[1, 0:2] += self.GRAY_PALETTE[agent_name]
                 agent_pattern[1, 0:2] /= 2.
             else:
                 # east
-                agent_pattern[0:2, 0] = self.GRAY_PALETTE[agent['name']]
-                agent_pattern[0:2, 1] += self.GRAY_PALETTE[agent['name']]
+                agent_pattern[0:2, 0] = self.GRAY_PALETTE[agent_name]
+                agent_pattern[0:2, 1] += self.GRAY_PALETTE[agent_name]
                 agent_pattern[0:2, 1] /= 2.
 
             buffer[agent_z * 2:agent_z * 2 + 2,
                    agent_x * 2:agent_x * 2 + 2] = agent_pattern
+
+        if self.debug_level > 1:
+            for y in range(0, len(self.DEFAULT_BOARD)):
+                text = ""
+                for x in range(0, len(self.DEFAULT_BOARD[0])):
+
+                    skip = False
+                    for agent in self.entities:
+                        agent_x = int(agent['pos'][0])
+                        agent_z = int(agent['pos'][1]) + 1
+                        if x == agent_x and y == agent_z:
+                            if agent['name'] == "Pig":
+                                text += " P "
+                            else:
+                                if agent['dir'] == 0:
+                                    text += " v "
+                                elif agent['dir'] == 90:
+                                    text += " < "
+                                elif agent['dir'] == 180:
+                                    text += " ^ "
+                                elif agent['dir'] == 270:
+                                    text += " > "
+
+                            skip = True
+                            break
+
+                    if not skip:
+                        if self.DEFAULT_BOARD[y][x] == u'sand':
+                            text += " + "
+                        elif self.DEFAULT_BOARD[y][x] == u'grass':
+                            text += "   "
+                        elif self.DEFAULT_BOARD[y][x] == u'lapis_block':
+                            text += " O "
+                print(text)
 
         return buffer / 255
 
