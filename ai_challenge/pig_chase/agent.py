@@ -135,6 +135,7 @@ class FocusedAgent(AStarAgent):
         self._action_list = []
 
     def act(self, state, reward, done, is_training=False):
+        time.sleep(2)
         if done:
             self._action_list = []
             self._previous_target_pos = None

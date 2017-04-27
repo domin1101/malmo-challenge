@@ -25,6 +25,7 @@ from os import path
 from threading import Thread, active_count
 from time import sleep
 
+from mockenvironment import MockPigChaseEnvironment
 from evolution import Evolution
 from model import NeuralNetwork, MLPTensor
 from malmopy.agent import RandomAgent
@@ -47,20 +48,16 @@ BASELINES_FOLDER = 'results/baselines/pig_chase/%s/%s'
 EPOCH_SIZE = 100
 
 
-def agent_factory(name, role, baseline_agent, clients, matches,
-                  logdir, visualizer, agents):
+def agent_factory(name, role, baseline_agent, clients, matches, logdir, visualizer, agents, env):
 
     assert len(clients) >= 2, 'Not enough clients (need at least 2)'
     clients = parse_clients_args(clients)
 
-    builder = PigChaseSymbolicStateBuilder()
-
     agent_index = 0
 
-    env = PigChaseEnvironment(clients, PigChaseTopDownStateBuilder(True), role=role, randomize_positions=True)
+    env = env or PigChaseEnvironment(clients, PigChaseTopDownStateBuilder(True), role=role, randomize_positions=True)
 
-
-    obs = env.reset()
+    obs = env.reset(role)
     reward = 0
     agent_done = False
     viz_rewards = []
@@ -96,13 +93,26 @@ def agent_factory(name, role, baseline_agent, clients, matches,
                 agent = agents[agent_index]
 
             viz_rewards = []
-            obs = env.reset()
+            obs = env.reset(role)
 
         # select an action
         action = agent.act(obs, reward, agent_done, is_training=True)
         # take a step
-        obs, reward, agent_done = env.do(action)
+        obs, reward, agent_done = env.do(action, role)
         viz_rewards.append(reward)
+
+
+def agent_factory_mock(name, role, baseline_agent, clients, matches, logdir, visualizer, agents):
+    env = MockPigChaseEnvironment(clients, PigChaseTopDownStateBuilder(True), role=role, randomize_positions=True)
+
+    obs = env.reset()
+    reward = 0
+    agent_done = False
+
+    while not env.done:
+        action = agent.act(obs, reward, agent_done, is_training=True)
+
+        obs, reward, agent_done = env.do(action)
 
 
 def reset_agents(agents):
@@ -117,7 +127,10 @@ def run_experiment(threads):
     population = []
     parasites = []
 
-    env = PigChaseEnvironment(args.clients, PigChaseTopDownStateBuilder(True), role=0, randomize_positions=True)
+    if True:
+        env = MockPigChaseEnvironment(args.clients, PigChaseTopDownStateBuilder(True), role=0, randomize_positions=True)
+    else:
+        env = PigChaseEnvironment(args.clients, PigChaseTopDownStateBuilder(True), role=0, randomize_positions=True)
 
     evolution = Evolution(visualizer, env)
 
@@ -136,6 +149,7 @@ def run_experiment(threads):
 
         processes = []
         for thread in threads:
+            thread['env'] = env
             if thread['role'] == 0:
                 thread['agents'] = current_pop1
                 thread['matches'] = len(current_pop2)/2
