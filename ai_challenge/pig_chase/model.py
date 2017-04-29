@@ -7,7 +7,7 @@ from malmopy.model import BaseModel
 import tensorflow as tf
 
 class MLPTensor:
-    def __init__(self, in_shape, output_shape, hidden_layer_sizes):
+    def __init__(self, in_shape, output_shape, hidden_layer_sizes, sess):
         self.input_shape = in_shape
         self.output_shape = output_shape
 
@@ -43,10 +43,7 @@ class MLPTensor:
         self.mutationStrengthMin = tf.constant(0.000001)
         self.mutationStrengthMax = tf.constant(50.0)
 
-        self.sess = tf.Session()
-        self.sess.run(tf.global_variables_initializer())
-
-
+        self.sess = sess
 
     def __call__(self, x):
         return self.sess.run(self.y[-1], feed_dict={self.x: x})

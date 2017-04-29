@@ -18,6 +18,7 @@
 import numpy as np
 import os
 import sys
+import tensorflow as tf
 
 from argparse import ArgumentParser
 from datetime import datetime
@@ -120,8 +121,8 @@ def agent_factory_mock(population, parasites, env):
                 obs, reward, agent_done = env.do(action)
                 viz_rewards[env.current_player].append(reward)
 
-            agents[0].rewards.append(sum(viz_rewards[0]))
-            agents[1].rewards.append(sum(viz_rewards[1]))
+            agents[0].matches.append({'own_reward': sum(viz_rewards[0]), 'other_reward': sum(viz_rewards[1])})
+            agents[1].matches.append({'own_reward': sum(viz_rewards[1]), 'other_reward': sum(viz_rewards[0])})
 
             visualize_evolution(visualizer, role, key1, viz_rewards[0])
             visualize_evolution(visualizer, role, key2, viz_rewards[1])
@@ -129,12 +130,14 @@ def agent_factory_mock(population, parasites, env):
 
 def reset_agents(agents):
     for agent in agents:
-        agent.rewards = []
+        agent.matches = []
 
 
 def run_experiment(threads, fast):
     assert len(threads) == 2, 'Not enough agents (required: 2, got: %d)'\
                 % len(threads)
+
+    sess = tf.Session()
 
     population = []
     parasites = []
@@ -144,18 +147,18 @@ def run_experiment(threads, fast):
     else:
         env = PigChaseEnvironment(args.clients, PigChaseTopDownStateBuilder(True), role=0, randomize_positions=True)
 
-    evolution = Evolution(visualizer, env)
-
-    for i in range(150):
-        population.append(evolution.create(i))
-
-    for i in range(150):
-        parasites.append(evolution.create(i))
+    evolution = Evolution(visualizer, env, sess)
 
     current_pop1 = population
     current_pop2 = parasites
 
     while True:
+        population = evolution.process_generation(population)
+
+        sess.run(tf.global_variables_initializer())
+
+        sample = evolution.combine(parasites, 5)
+
         reset_agents(population)
         reset_agents(parasites)
 
@@ -188,10 +191,10 @@ def run_experiment(threads, fast):
             except KeyboardInterrupt:
                 print('Caught control-c - shutting down.')
         else:
-            agent_factory_mock(population, parasites[:25], env)
+            agent_factory_mock(population, sample, env)
 
         print("Process generation")
-        evolution.processGeneration(population)
+        population = evolution.evaluate_generation(population)
 
         population, parasites = parasites, population
 

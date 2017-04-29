@@ -47,7 +47,7 @@ class EvolutionAgent(BaseAgent):
 
         self._model = model
         self._actions_taken = 0
-        self.rewards = []
+        self.matches = []
 
         # Stats related
         self._stats_rewards = []
