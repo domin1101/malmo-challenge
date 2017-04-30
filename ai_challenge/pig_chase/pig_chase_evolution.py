@@ -157,7 +157,7 @@ def run_experiment(threads, fast):
 
         sess.run(tf.global_variables_initializer())
 
-        sample = evolution.combine(parasites, 5)
+        sample = evolution.combine(parasites, 25)
 
         reset_agents(population)
         reset_agents(parasites)
@@ -195,6 +195,10 @@ def run_experiment(threads, fast):
 
         print("Process generation")
         population = evolution.evaluate_generation(population)
+
+        if len(sample) > 0:
+            tf.summary.FileWriter("test", sess.graph)
+            exit(0)
 
         population, parasites = parasites, population
 

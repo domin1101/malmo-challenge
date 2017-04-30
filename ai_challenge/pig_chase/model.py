@@ -46,7 +46,16 @@ class MLPTensor:
         self.sess = sess
 
     def __call__(self, x):
-        return self.sess.run(self.y[-1], feed_dict={self.x: x})
+       # run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
+       # run_metadata = tf.RunMetadata()
+
+        ret = self.sess.run(self.y[-1], feed_dict={self.x: x})#, options=run_options, run_metadata=run_metadata)
+
+       # writer = tf.summary.FileWriter("test", self.sess.graph)
+      #  writer.add_run_metadata(run_metadata, "Blub")
+       # exit(0)
+
+        return ret
 
     def weight_variable(self, shape):
         initial = tf.truncated_normal(shape, stddev=0.1)

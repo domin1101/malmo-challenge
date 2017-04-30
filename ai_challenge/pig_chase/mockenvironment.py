@@ -97,6 +97,7 @@ class MockPigChaseEnvironment(PigChaseEnvironment):
         self.current_player = 0
         self.start_player = 0
         self.debug_level = debug_level
+        self._buffer_cache = None
 
     @property
     def state(self):
@@ -201,23 +202,28 @@ class MockPigChaseEnvironment(PigChaseEnvironment):
         else:
             return 0
 
+    def _get_board_state(self):
+        if self._buffer_cache is None:
+            buffer_shape = (len(self.DEFAULT_BOARD) * 2, len(self.DEFAULT_BOARD[0]) * 2)
+            buffer = np.zeros(buffer_shape, dtype=np.float32)
+
+            for x in range(0, len(self.DEFAULT_BOARD)):
+                for y in range(0, len(self.DEFAULT_BOARD[0])):
+                    mapped_value = self.GRAY_PALETTE[self.DEFAULT_BOARD[x][y]]
+                    # draw 4 pixels per block
+                    buffer[x * 2:x * 2 + 2, y * 2:y * 2 + 2] = mapped_value
+
+            self._buffer_cache = buffer
+
+        return self._buffer_cache
+
     def get_state(self):
-        buffer_shape = (len(self.DEFAULT_BOARD) * 2, len(self.DEFAULT_BOARD[0]) * 2)
-        buffer = np.zeros(buffer_shape, dtype=np.float32)
-
-        for x in range(0, len(self.DEFAULT_BOARD)):
-            for y in range(0, len(self.DEFAULT_BOARD[0])):
-                mapped_value = self.GRAY_PALETTE[self.DEFAULT_BOARD[x][y]]
-                # draw 4 pixels per block
-                buffer[x * 2:x * 2 + 2,
-                        y * 2:y * 2 + 2] = mapped_value
-
+        buffer = self._get_board_state()
 
         for agent in self.entities:
             agent_x = int(agent['pos'][0])
             agent_z = int(agent['pos'][1]) + 1
-            agent_pattern = buffer[agent_z * 2:agent_z * 2 + 2,
-                                   agent_x * 2:agent_x * 2 + 2]
+            agent_pattern = buffer[agent_z * 2:agent_z * 2 + 2, agent_x * 2:agent_x * 2 + 2]
 
             # convert Minecraft yaw to 0=north, 1=west etc.
             agent_direction = ((((int(agent['dir']) - 45) % 360) // 90) - 1) % 4
@@ -251,8 +257,7 @@ class MockPigChaseEnvironment(PigChaseEnvironment):
                 agent_pattern[0:2, 1] += self.GRAY_PALETTE[agent_name]
                 agent_pattern[0:2, 1] /= 2.
 
-            buffer[agent_z * 2:agent_z * 2 + 2,
-                   agent_x * 2:agent_x * 2 + 2] = agent_pattern
+            buffer[agent_z * 2:agent_z * 2 + 2,  agent_x * 2:agent_x * 2 + 2] = agent_pattern
 
         if self.debug_level > 1:
             for y in range(0, len(self.DEFAULT_BOARD)):
