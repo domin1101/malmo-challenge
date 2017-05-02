@@ -19,6 +19,7 @@ import numpy as np
 import os
 import sys
 import tensorflow as tf
+import time
 
 from argparse import ArgumentParser
 from datetime import datetime
@@ -26,6 +27,7 @@ from os import path
 from threading import Thread, active_count
 from time import sleep
 
+from malmopy.model.chainer import MLPChain
 from mockenvironment import MockPigChaseEnvironment
 from evolution import Evolution
 from model import NeuralNetwork, MLPTensor
@@ -106,6 +108,8 @@ def agent_factory(name, role, baseline_agent, clients, matches, logdir, visualiz
 
 def agent_factory_mock(population, parasites, env):
 
+
+
     reward = 0
     agent_done = False
 
@@ -124,8 +128,6 @@ def agent_factory_mock(population, parasites, env):
             agents[0].matches.append({'own_reward': sum(viz_rewards[0]), 'other_reward': sum(viz_rewards[1])})
             agents[1].matches.append({'own_reward': sum(viz_rewards[1]), 'other_reward': sum(viz_rewards[0])})
 
-            visualize_evolution(visualizer, role, key1, viz_rewards[0])
-            visualize_evolution(visualizer, role, key2, viz_rewards[1])
 
 
 def reset_agents(agents):
@@ -133,11 +135,23 @@ def reset_agents(agents):
         agent.matches = []
 
 
+from fann2 import libfann
+
+
 def run_experiment(threads, fast):
     assert len(threads) == 2, 'Not enough agents (required: 2, got: %d)'\
                 % len(threads)
 
     sess = tf.Session()
+
+
+    #ann = libfann.neural_net()
+    #ann.create_standard_array([18 * 18, 32, 3])
+
+    #ann.set_activation_function_hidden(libfann.LINEAR)
+   # ann.set_activation_function_output(libfann.SIGMOID_SYMMETRIC)
+
+    sess.run(tf.global_variables_initializer())
 
     population = []
     parasites = []
@@ -152,10 +166,14 @@ def run_experiment(threads, fast):
     current_pop1 = population
     current_pop2 = parasites
 
+    iteration = 0
+
     while True:
         population = evolution.process_generation(population)
 
-        sess.run(tf.global_variables_initializer())
+        if iteration == 0:
+            parasites = evolution.process_generation(parasites)
+            sess.run(tf.global_variables_initializer())
 
         sample = evolution.combine(parasites, 25)
 
@@ -193,14 +211,18 @@ def run_experiment(threads, fast):
         else:
             agent_factory_mock(population, sample, env)
 
-        print("Process generation")
+        visualize_evolution(visualizer, iteration, population)
+
         population = evolution.evaluate_generation(population)
 
-        if len(sample) > 0:
-            tf.summary.FileWriter("test", sess.graph)
-            exit(0)
+       # if iteration > 0:
+       #     tf.summary.FileWriter(logdir, sess.graph)
+       #     exit(0)
 
+        print("--- Population change (%d. iteration) ---" % iteration)
         population, parasites = parasites, population
+
+        iteration += 1
 
 
 
@@ -218,7 +240,7 @@ if __name__ == '__main__':
     args = arg_parser.parse_args()
 
     logdir = BASELINES_FOLDER % (args.type, datetime.utcnow().isoformat())
-    if 'malmopy.visualization.tensorboard' in sys.modules and False:
+    if 'malmopy.visualization.tensorboard' in sys.modules:
         visualizer = TensorboardVisualizer()
         visualizer.initialize(logdir, None)
     else:

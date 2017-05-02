@@ -3,6 +3,7 @@ from __future__ import absolute_import
 
 import itertools
 
+import zignor
 from malmopy.model import BaseModel
 import tensorflow as tf
 
@@ -79,30 +80,72 @@ class MLPTensor:
                 self.sess.run(own_b.assign(other_b))
                 self.sess.run(own_mut_b.assign(other_mut_b))
 
-    def _mutate_tensor(self, W, mut_W):
+    def _mutate_tensor(self, target_W, W, target_mut_W, mut_W):
         with tf.name_scope('mut_W'):
-            mut_W *= tf.exp(self.mutationStrengthChangeSpeed * tf.random_normal(mut_W.shape))
+            target_mut_W = mut_W * tf.exp(self.mutationStrengthChangeSpeed * zignor.randn(*mut_W.shape.as_list()))
         with tf.name_scope('normalize'):
-            mut_W = tf.minimum(self.mutationStrengthMax, tf.maximum(self.mutationStrengthMin, mut_W))
+            target_mut_W = tf.minimum(self.mutationStrengthMax, tf.maximum(self.mutationStrengthMin, target_mut_W))
         with tf.name_scope('W_add'):
-            W += mut_W * tf.random_normal(mut_W.shape)
-        self.sess.run(W)
+            target_W = W + target_mut_W * zignor.randn(*target_mut_W.shape.as_list())
 
-    def mutate(self):
+       # run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
+        #run_metadata = tf.RunMetadata()
+
+        self.sess.run(target_W)#, options=run_options, run_metadata=run_metadata)
+
+        #writer = tf.summary.FileWriter("test", self.sess.graph)
+        #writer.add_run_metadata(run_metadata, "Blub")
+        #exit(0)
+
+
+    def mutate_and_assign(self, other):
         with tf.name_scope('mutate'):
             with tf.name_scope('W'):
-                for W, mut_W in itertools.izip(self.W, self.mut_W):
-                    self._mutate_tensor(W, mut_W)
+                for own_W, W, own_mut_W, mut_W in itertools.izip(self.W, other.W, self.mut_W, other.mut_W):
+                    self._mutate_tensor(own_W, W, own_mut_W, mut_W)
 
             with tf.name_scope('b'):
-                for b, mut_b in itertools.izip(self.b, self.mut_b):
-                    self._mutate_tensor(b, mut_b)
+                for own_b, b, own_mut_b, mut_b in itertools.izip(self.b, other.b, self.mut_b, other.mut_b):
+                    self._mutate_tensor(own_b, b, own_mut_b, mut_b)
 
+    def randomize(self):
+        with tf.name_scope('randomize'):
+            for W in self.W:
+                W.assign(tf.truncated_normal(W.shape, stddev=0.1))
+
+            for b in self.b:
+                b.assign(tf.constant(0.1, shape=b.shape))
+
+            for mut_b in self.mut_b:
+                mut_b.assign(tf.constant(0.2, shape=mut_b.shape))
+
+            for mut_W in self.mut_W:
+                mut_W.assign(tf.constant(0.2, shape=mut_W.shape))
+
+    def avg_mutation_strength(self):
+        mut_W_sum_list = [tf.reduce_sum(mat) for mat in self.mut_W]
+        mut_b_sum_list = [tf.reduce_sum(mat) for mat in self.mut_b]
+
+
+        #avg = (tf.add_n(mut_W_sum_list) + tf.add_n(mut_b_sum_list)) /
 
         #tf.summary.FileWriter("test", self.sess.graph)
         #exit(0)
 
+#import torch.nn as nn
+#import torch.nn.functional as F
 
+# class MLPTorch(nn.Module):
+#
+#     def __init__(self):
+#         super(MLPTorch, self).__init__()
+#         self.fc1 = nn.Linear(18 * 18, 1)
+#         self.fc2 = nn.Linear(1, 3)
+#
+#     def forward(self, x):
+#         x = F.relu(self.fc1(x))
+#         x = F.sigmoid(self.fc2(x))
+#         return x
 
 
 class NeuralNetwork(BaseModel):
@@ -126,8 +169,14 @@ class NeuralNetwork(BaseModel):
     def copyWeightsFrom(self, neuralNetwork):
         self._model.copyWeightsFrom(neuralNetwork._model)
 
-    def mutate(self):
-        self._model.mutate()
+    def mutate_and_assign(self, other):
+        self._model.mutate_and_assign(other._model)
+
+    def randomize(self):
+        self._model.randomize()
+
+    def avg_mutation_strength(self):
+        return self._model.avg_mutation_strength()
 
 
 

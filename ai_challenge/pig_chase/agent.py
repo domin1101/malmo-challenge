@@ -73,9 +73,17 @@ class EvolutionAgent(BaseAgent):
     def copyParametersFrom(self, agent):
         self._model.copyWeightsFrom(agent._model)
 
-    def mutate(self):
-        self._model.mutate()
+    def mutate_and_assign(self, other):
+        self._model.mutate_and_assign(other._model)
 
+    def randomize(self):
+        self._model.randomize()
+
+    def avg_reward(self):
+        return sum(match['own_reward'] for match in self.matches) / len(self.matches)
+
+    def avg_mutation_strength(self):
+        return self._model.avg_mutation_strength()
 
 class PigChaseQLearnerAgent(QLearnerAgent):
     """A thin wrapper around QLearnerAgent that normalizes rewards to [-1,1]"""

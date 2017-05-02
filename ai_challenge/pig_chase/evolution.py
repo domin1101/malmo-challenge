@@ -12,11 +12,14 @@ class Evolution:
         self._env = env
         self._visualizer = visualizer
         self.sess = sess
+        self.unused_individuals = []
+        self.next_name = 0
 
-    def create(self, name):
+    def _create(self):
         chain = MLPTensor(18 * 18, self._env.available_actions, [32], self.sess)
         model = NeuralNetwork(chain, -1)
-        return EvolutionAgent(name, self._env.available_actions, model, self._visualizer)
+        self.next_name = self.next_name + 1
+        return EvolutionAgent(self.next_name, self._env.available_actions, model, self._visualizer)
 
     def fitness(self, agents):
         win_counter = {}
@@ -35,27 +38,39 @@ class Evolution:
                 if match['own_reward'] > match['other_reward']:
                     agent.fitness += 1.0 / win_counter[key]
 
+    def _get_new_individual(self, force_random = False):
+        if len(self.unused_individuals) > 0:
+            individual = self.unused_individuals.pop()
+            if force_random:
+                individual.randomize()
+            return individual
+        else:
+            return self._create()
+
     def select(self, agents):
+        print("Selecting %d individuals" % self._select_count)
+        for i in range(self._select_count, len(agents)):
+            self.unused_individuals.append(agents[i])
+
         return agents[:self._select_count]
 
     def mutate(self, agents):
         startSize = len(agents)
+        print("Mutating %d individuals" % (startSize * self._mutation_factor - len(agents)))
+
         while len(agents) < startSize * self._mutation_factor:
             agents.append(self.mutateAgent(agents[random.randint(0, startSize - 1)]))
         return agents
 
     def mutateAgent(self, agent):
-        newAgent = self.create(agent.name + 1)
-        newAgent.copyParametersFrom(agent)
-        newAgent.mutate()
+        newAgent = self._get_new_individual()
+        newAgent.mutate_and_assign(agent)
         return agent
 
     def create_new(self, agents, up_to):
+        print("Creating %d new individuals" % (up_to - len(agents)))
         while len(agents) < up_to:
-            name = 0
-            if len(agents) > 0:
-                name = agents[-1].name + 1
-            agents.append(self.create(name))
+            agents.append(self._get_new_individual(True))
         return agents
 
     def process_generation(self, agents):

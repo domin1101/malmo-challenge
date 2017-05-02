@@ -40,8 +40,9 @@ def visualize_training(visualizer, step, rewards, tag='Training'):
     visualizer.add_entry(step, '%s/min.reward' % tag, min(rewards))
     visualizer.add_entry(step, '%s/actions per episode' % tag, len(rewards)-1)
 
-def visualize_evolution(visualizer, thread_index, agent_index, rewards, tag='Training'):
-    visualizer.add_entry(agent_index, '%s/reward per episode' % thread_index, sum(rewards))
+def visualize_evolution(visualizer, iteration, agents):
+    visualizer.add_entry(iteration, 'avg. reward', sum(agent.avg_reward() for agent in agents) / len(agents))
+    #visualizer.add_entry(iteration, 'avg. mutation strength', sum(agent.avg_mutation_strength() for agent in agents) / len(agents))
 
 class Entity(object):
     """ Wrap entity attributes """
