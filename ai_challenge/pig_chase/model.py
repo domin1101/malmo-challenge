@@ -82,16 +82,16 @@ class MLPTensor:
 
     def _mutate_tensor(self, target_W, W, target_mut_W, mut_W):
         with tf.name_scope('mut_W'):
-            target_mut_W = mut_W * tf.exp(self.mutationStrengthChangeSpeed * zignor.randn(*mut_W.shape.as_list()))
+            res = mut_W * tf.exp(self.mutationStrengthChangeSpeed * zignor.randn(*mut_W.shape.as_list()))
         with tf.name_scope('normalize'):
-            target_mut_W = tf.minimum(self.mutationStrengthMax, tf.maximum(self.mutationStrengthMin, target_mut_W))
+            self.sess.run(target_mut_W.assign(tf.minimum(self.mutationStrengthMax, tf.maximum(self.mutationStrengthMin, res))))
         with tf.name_scope('W_add'):
-            target_W = W + target_mut_W * zignor.randn(*target_mut_W.shape.as_list())
+            self.sess.run(target_W.assign(W + target_mut_W * zignor.randn(*target_mut_W.shape.as_list())))
 
        # run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
         #run_metadata = tf.RunMetadata()
 
-        self.sess.run(target_W)#, options=run_options, run_metadata=run_metadata)
+        #, options=run_options, run_metadata=run_metadata)
 
         #writer = tf.summary.FileWriter("test", self.sess.graph)
         #writer.add_run_metadata(run_metadata, "Blub")
@@ -126,11 +126,19 @@ class MLPTensor:
         mut_W_sum_list = [tf.reduce_sum(mat) for mat in self.mut_W]
         mut_b_sum_list = [tf.reduce_sum(mat) for mat in self.mut_b]
 
+        element_number = 0
 
-        #avg = (tf.add_n(mut_W_sum_list) + tf.add_n(mut_b_sum_list)) /
+        for mut_b in self.mut_b:
+            element_number += mut_b.shape.as_list()[0]
 
-        #tf.summary.FileWriter("test", self.sess.graph)
-        #exit(0)
+        for mut_W in self.mut_W:
+            element_number += mut_W.shape.as_list()[0] * mut_W.shape.as_list()[1]
+
+        avg = (tf.add_n(mut_W_sum_list) + tf.add_n(mut_b_sum_list)) / element_number
+
+        return self.sess.run(avg)
+
+
 
 #import torch.nn as nn
 #import torch.nn.functional as F

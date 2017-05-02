@@ -108,8 +108,6 @@ def agent_factory(name, role, baseline_agent, clients, matches, logdir, visualiz
 
 def agent_factory_mock(population, parasites, env):
 
-
-
     reward = 0
     agent_done = False
 
@@ -128,6 +126,7 @@ def agent_factory_mock(population, parasites, env):
             agents[0].matches.append({'own_reward': sum(viz_rewards[0]), 'other_reward': sum(viz_rewards[1])})
             agents[1].matches.append({'own_reward': sum(viz_rewards[1]), 'other_reward': sum(viz_rewards[0])})
 
+            print(sum(viz_rewards[0]), sum(viz_rewards[1]))
 
 
 def reset_agents(agents):
@@ -167,6 +166,7 @@ def run_experiment(threads, fast):
     current_pop2 = parasites
 
     iteration = 0
+    is_parasite = False
 
     while True:
         population = evolution.process_generation(population)
@@ -175,7 +175,7 @@ def run_experiment(threads, fast):
             parasites = evolution.process_generation(parasites)
             sess.run(tf.global_variables_initializer())
 
-        sample = evolution.combine(parasites, 25)
+        sample = evolution.combine(parasites, 25, not is_parasite)
 
         reset_agents(population)
         reset_agents(parasites)
@@ -213,7 +213,7 @@ def run_experiment(threads, fast):
 
         visualize_evolution(visualizer, iteration, population)
 
-        population = evolution.evaluate_generation(population)
+        population = evolution.evaluate_generation(population, is_parasite)
 
        # if iteration > 0:
        #     tf.summary.FileWriter(logdir, sess.graph)
@@ -223,6 +223,7 @@ def run_experiment(threads, fast):
         population, parasites = parasites, population
 
         iteration += 1
+        is_parasite = not is_parasite
 
 
 

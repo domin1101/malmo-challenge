@@ -21,12 +21,15 @@ class Evolution:
         self.next_name = self.next_name + 1
         return EvolutionAgent(self.next_name, self._env.available_actions, model, self._visualizer)
 
-    def fitness(self, agents):
+    def has_won(self, match, is_parasite):
+        return match['own_reward'] > match['other_reward'] or match['own_reward'] == match['other_reward'] and not is_parasite
+
+    def fitness(self, agents, is_parasite):
         win_counter = {}
 
         for agent in agents:
             for key, match in enumerate(agent.matches):
-                if match['own_reward'] > match['other_reward']:
+                if self.has_won(match, is_parasite):
                     if key not in win_counter:
                         win_counter[key] = 1
                     else:
@@ -35,10 +38,10 @@ class Evolution:
         for agent in agents:
             agent.fitness = 0
             for key, match in enumerate(agent.matches):
-                if match['own_reward'] > match['other_reward']:
+                if self.has_won(match, is_parasite):
                     agent.fitness += 1.0 / win_counter[key]
 
-    def _get_new_individual(self, force_random = False):
+    def _get_new_individual(self, force_random=False):
         if len(self.unused_individuals) > 0:
             individual = self.unused_individuals.pop()
             if force_random:
@@ -65,7 +68,7 @@ class Evolution:
     def mutateAgent(self, agent):
         newAgent = self._get_new_individual()
         newAgent.mutate_and_assign(agent)
-        return agent
+        return newAgent
 
     def create_new(self, agents, up_to):
         print("Creating %d new individuals" % (up_to - len(agents)))
@@ -81,8 +84,8 @@ class Evolution:
 
         return agents
 
-    def evaluate_generation(self, agents):
-        self.fitness(agents)
+    def evaluate_generation(self, agents, is_parasite):
+        self.fitness(agents, is_parasite)
 
         agents.sort(key=lambda x: x.fitness, reverse=True)
 
@@ -93,7 +96,7 @@ class Evolution:
 
         return agents
 
-    def combine(self, parasites, sample_size):
+    def combine(self, parasites, sample_size, is_parasite):
         sample = []
         beat = {}
 
@@ -104,7 +107,7 @@ class Evolution:
                 if parasite not in sample:
                     fitness = 0
                     for key, match in enumerate(parasite.matches):
-                        if match['own_reward'] > match['other_reward']:
+                        if self.has_won(match, is_parasite):
                             fitness += 1.0 / (1 + beat.get(key, 0))
                     if best_individual is None or fitness > best_fitness:
                         best_individual = parasite
@@ -114,7 +117,7 @@ class Evolution:
 
             sample.append(best_individual)
             for key, match in enumerate(best_individual.matches):
-                if match['own_reward'] > match['other_reward']:
+                if self.has_won(match, is_parasite):
                     if key not in beat:
                         beat[key] = 0
                     beat[key] += 1
