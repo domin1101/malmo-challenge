@@ -4,6 +4,8 @@ from __future__ import absolute_import
 import itertools
 
 import zignor
+from fann2 import libfann
+
 from malmopy.model import BaseModel
 import tensorflow as tf
 
@@ -79,6 +81,87 @@ class MLPTensor:
             for own_b, other_b, own_mut_b, other_mut_b in itertools.izip(self.b, other.b, self.mut_b, other.mut_b):
                 self.sess.run(own_b.assign(other_b))
                 self.sess.run(own_mut_b.assign(other_mut_b))
+
+    def _mutate_tensor(self, target_W, W, target_mut_W, mut_W):
+        with tf.name_scope('mut_W'):
+            res = mut_W * tf.exp(self.mutationStrengthChangeSpeed * zignor.randn(*mut_W.shape.as_list()))
+        with tf.name_scope('normalize'):
+            self.sess.run(target_mut_W.assign(tf.minimum(self.mutationStrengthMax, tf.maximum(self.mutationStrengthMin, res))))
+        with tf.name_scope('W_add'):
+            self.sess.run(target_W.assign(W + target_mut_W * zignor.randn(*target_mut_W.shape.as_list())))
+
+       # run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
+        #run_metadata = tf.RunMetadata()
+
+        #, options=run_options, run_metadata=run_metadata)
+
+        #writer = tf.summary.FileWriter("test", self.sess.graph)
+        #writer.add_run_metadata(run_metadata, "Blub")
+        #exit(0)
+
+
+    def mutate_and_assign(self, other):
+        with tf.name_scope('mutate'):
+            with tf.name_scope('W'):
+                for own_W, W, own_mut_W, mut_W in itertools.izip(self.W, other.W, self.mut_W, other.mut_W):
+                    self._mutate_tensor(own_W, W, own_mut_W, mut_W)
+
+            with tf.name_scope('b'):
+                for own_b, b, own_mut_b, mut_b in itertools.izip(self.b, other.b, self.mut_b, other.mut_b):
+                    self._mutate_tensor(own_b, b, own_mut_b, mut_b)
+
+    def randomize(self):
+        with tf.name_scope('randomize'):
+            for W in self.W:
+                W.assign(tf.truncated_normal(W.shape, stddev=0.1))
+
+            for b in self.b:
+                b.assign(tf.constant(0.1, shape=b.shape))
+
+            for mut_b in self.mut_b:
+                mut_b.assign(tf.constant(0.2, shape=mut_b.shape))
+
+            for mut_W in self.mut_W:
+                mut_W.assign(tf.constant(0.2, shape=mut_W.shape))
+
+    def avg_mutation_strength(self):
+        mut_W_sum_list = [tf.reduce_sum(mat) for mat in self.mut_W]
+        mut_b_sum_list = [tf.reduce_sum(mat) for mat in self.mut_b]
+
+        element_number = 0
+
+        for mut_b in self.mut_b:
+            element_number += mut_b.shape.as_list()[0]
+
+        for mut_W in self.mut_W:
+            element_number += mut_W.shape.as_list()[0] * mut_W.shape.as_list()[1]
+
+        avg = (tf.add_n(mut_W_sum_list) + tf.add_n(mut_b_sum_list)) / element_number
+
+        return self.sess.run(avg)
+
+
+class MLPFann:
+    def __init__(self, in_shape, output_shape, hidden_layer_sizes, sess):
+        self.input_shape = in_shape
+        self.output_shape = output_shape
+
+        self.ann = libfann.neural_net()
+        self.ann.create_standard_array([in_shape, hidden_layer_sizes[0], output_shape])
+
+        self.ann.set_activation_function_hidden(libfann.LINEAR)
+        self.ann.set_activation_function_output(libfann.SIGMOID_SYMMETRIC)
+        print(self.ann.get_connection_array(libfann.neural_net.w))
+
+        self.mutationStrengthChangeSpeed = 1.6
+        self.mutationStrengthMin = 0.000001
+        self.mutationStrengthMax = 50.0
+
+    def __call__(self, x):
+        return self.ann.run(x)
+
+    def copyWeightsFrom(self, other):
+        self.ann = other.ann.fann_copy()
 
     def _mutate_tensor(self, target_W, W, target_mut_W, mut_W):
         with tf.name_scope('mut_W'):

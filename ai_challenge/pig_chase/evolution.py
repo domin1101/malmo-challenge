@@ -1,7 +1,7 @@
 import random
 
 from agent import EvolutionAgent
-from model import MLPTensor, NeuralNetwork
+from model import MLPTensor, NeuralNetwork, MLPFann
 
 
 class Evolution:
@@ -16,7 +16,7 @@ class Evolution:
         self.next_name = 0
 
     def _create(self):
-        chain = MLPTensor(18 * 18, self._env.available_actions, [32], self.sess)
+        chain = MLPFann(18 * 18, self._env.available_actions, [32], self.sess)
         model = NeuralNetwork(chain, -1)
         self.next_name = self.next_name + 1
         return EvolutionAgent(self.next_name, self._env.available_actions, model, self._visualizer)
