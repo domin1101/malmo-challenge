@@ -218,7 +218,7 @@ class MockPigChaseEnvironment(PigChaseEnvironment):
 
             self._buffer_cache = buffer
 
-        return self._buffer_cache
+        return self._buffer_cache.copy()
 
     def get_state(self):
         buffer = self._get_board_state()

@@ -24,7 +24,7 @@ class Evolution:
     def has_won(self, match, is_parasite):
         return match['own_reward'] > match['other_reward'] or match['own_reward'] == match['other_reward'] and not is_parasite
 
-    def fitness(self, agents, is_parasite):
+    def _fitness(self, agents, is_parasite):
         win_counter = {}
 
         for agent in agents:
@@ -40,6 +40,14 @@ class Evolution:
             for key, match in enumerate(agent.matches):
                 if self.has_won(match, is_parasite):
                     agent.fitness += 1.0 / win_counter[key]
+
+    def fitness(self, agents, is_parasite):
+
+        for agent in agents:
+            agent.fitness = 0
+            for key, match in enumerate(agent.matches):
+                if self.has_won(match, is_parasite):
+                    agent.fitness += 1
 
     def _get_new_individual(self, force_random=False):
         if len(self.unused_individuals) > 0:

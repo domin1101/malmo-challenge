@@ -121,10 +121,10 @@ def agent_factory_mock(population, parasites, env):
             while not env.done:
                 action = agents[env.current_player].act(obs, reward, agent_done, is_training=True)
                 obs, reward, agent_done = env.do(action)
-                viz_rewards[env.current_player].append(reward)
+                viz_rewards[1 - env.current_player].append(reward)
 
-            agents[0].matches.append({'own_reward': sum(viz_rewards[0]), 'other_reward': sum(viz_rewards[1])})
-            agents[1].matches.append({'own_reward': sum(viz_rewards[1]), 'other_reward': sum(viz_rewards[0])})
+            agents[0].matches.append({'own_reward': sum(viz_rewards[0]), 'other_reward': sum(viz_rewards[1]), 'start_player': env.start_player})
+            agents[1].matches.append({'own_reward': sum(viz_rewards[1]), 'other_reward': sum(viz_rewards[0]), 'start_player': env.start_player})
 
             print(sum(viz_rewards[0]), sum(viz_rewards[1]))
 
@@ -175,7 +175,7 @@ def run_experiment(threads, fast):
             parasites = evolution.process_generation(parasites)
             sess.run(tf.global_variables_initializer())
 
-        sample = evolution.combine(parasites, 25, not is_parasite)
+        sample = evolution.combine(parasites, 10, not is_parasite)
 
         reset_agents(population)
         reset_agents(parasites)
