@@ -135,12 +135,12 @@ class MockPigChaseEnvironment(PigChaseEnvironment):
                     range(len(MockPigChaseEnvironment.VALID_START_POSITIONS)),
                     3, replace=False)]
         pos[0] = (2, 1)
-        pos[1] = (2, 3)
-        pos[2] = (2, 3)
+        pos[1] = (5, 3)
+        pos[2] = (5, 3)
         self.pig = {'name': 'Pig', 'pos': pos[0], 'dir': 0}
         self.agents = []
-        self.agents.append({'name': 'Agent_1', 'pos': pos[1], 'dir': 90, 'steps': 25})
-        self.agents.append({'name': 'Agent_2', 'pos': pos[2], 'dir': 90, 'steps': 25})
+        self.agents.append({'name': 'Agent_1', 'pos': pos[1], 'dir': 180, 'steps': 25})
+        self.agents.append({'name': 'Agent_2', 'pos': pos[2], 'dir': 180, 'steps': 25})
         self.entities = [self.agents[0], self.agents[1], self.pig]
         self.current_player = np.random.randint(0, 1)
         self.start_player = self.current_player

@@ -1,4 +1,5 @@
 #include "MalmoEvolution.hpp"
+#include "MinecraftFactory.hpp"
 #include <LightBulb/Learning/Evolution/ConstantMutationCommand.hpp>
 #include <LightBulb/Learning/Evolution/EvolutionStrategy/MutationAlgorithm.hpp>
 #include <LightBulb/Learning/Evolution/BestSelectionCommand.hpp>
@@ -48,7 +49,7 @@ AbstractLearningRule* MalmoEvolution::createLearningRate()
 	EvolutionLearningRuleOptions options;
 	
 	options.creationCommands.push_back(new ConstantCreationCommand(getIntegerPreference(PREFERENCE_CREATE_UP_TO)));
-	options.exitConditions.push_back(new PerfectIndividualFoundCondition(20));
+	options.exitConditions.push_back(new PerfectIndividualFoundCondition(1000));
 	options.reuseCommands.push_back(new ConstantReuseCommand(new BestReuseSelector(), 16));
 	options.selectionCommands.push_back(new BestSelectionCommand(getIntegerPreference(PREFERENCE_POPULATION_SIZE)));
 	options.mutationsCommands.push_back(new ConstantMutationCommand(new MutationAlgorithm(getDoublePreference(PREFERENCE_MUTATIONSTRENGTH_CHANGESPEED)), new RandomSelector(new RankBasedRandomFunction()), getDoublePreference(PREFERENCE_MUTATION_PERCENTAGE)));
@@ -123,16 +124,16 @@ AbstractEvolutionEnvironment* MalmoEvolution::createParasiteEnvironment()
 
 MalmoEvolution::MalmoEvolution()
 {
-	//addCustomSubApp(new PongGameFactory());
+	addCustomSubApp(new MinecraftFactory());
 	addPreference(new DoublePreference(PREFERENCE_MUTATION_PERCENTAGE, 1.8, 0, 3));
 	addPreference(new DoublePreference(PREFERENCE_RECOMBINATION_PERCENTAGE, 0.3, 0, 3));
 	addPreference(new DoublePreference(PREFERENCE_TOPOLOGY_MUTATION_PERCENTAGE, 0, 0, 3));
-	addPreference(new IntegerPreference(PREFERENCE_POPULATION_SIZE, 150, 1, 1000));
-	addPreference(new IntegerPreference(PREFERENCE_CREATE_UP_TO, 250, 1, 1000));
-	addPreference(new IntegerPreference(PREFERENCE_COMPETITIONS_SIZE, 25, 1, 1000));
+	addPreference(new IntegerPreference(PREFERENCE_POPULATION_SIZE, 15, 1, 1000));
+	addPreference(new IntegerPreference(PREFERENCE_CREATE_UP_TO, 25, 1, 1000));
+	addPreference(new IntegerPreference(PREFERENCE_COMPETITIONS_SIZE, 10, 1, 1000));
 	addPreference(new IntegerPreference(PREFERENCE_HALLOFFAME_COMPETITIONS_SIZE, 5, 1, 1000));
-	addPreference(new BooleanPreference(PREFERENCE_SHORTCUT_ENABLE, true));
-	addPreference(new IntegerPreference(PREFERENCE_NEURON_COUNT_FIRST_LAYER, 10, 1, 30));
+	addPreference(new BooleanPreference(PREFERENCE_SHORTCUT_ENABLE, false));
+	addPreference(new IntegerPreference(PREFERENCE_NEURON_COUNT_FIRST_LAYER, 32, 1, 30));
 	addPreference(new BooleanPreference(PREFERENCE_SECOND_LAYER_ENABLE, false));
 	addPreference(new IntegerPreference(PREFERENCE_NEURON_COUNT_SECOND_LAYER, 1, 1, 30));
 	addPreference(new DoublePreference(PREFERENCE_MUTATIONSTRENGTH_CHANGESPEED, 1.6, 0, 2)); // 1.6, simple

@@ -19,7 +19,7 @@ void Agent::getNNInput(std::vector<double>& input)
 
 void Agent::interpretNNOutput(std::vector<double>& output)
 {
-	if (output[0] > 0.5)
+	if (output[0] > 0.5 || (output[0] <= 0.5 && output[1] <= 0.5 && output[2] <= 0.5))
 	{
 		int nextX = x;
 		int nextY = y;
@@ -31,7 +31,7 @@ void Agent::interpretNNOutput(std::vector<double>& output)
 			nextY--;
 		else if (dir == 270)
 			nextX++;
-		if (currentGame->isFieldAllowed(nextX, nextY))
+		if (currentGame->isFieldAllowed(nextX, nextY + 1))
 		{
 			x = nextX;
 			y = nextY;
@@ -56,12 +56,12 @@ void Agent::setEnv(Minecraft &currentGame_)
 	currentGame = &currentGame_;
 }
 
-int Agent::getX()
+int Agent::getX()const
 {
 	return x;
 }
 
-int Agent::getY()
+int Agent::getY()const
 {
 	return y;
 }
@@ -71,4 +71,9 @@ void Agent::setPositionAndDir(int x_, int y_, int dir_)
 	x = x_;
 	y = y_;
 	dir = dir_;
+}
+
+int Agent::getDir()const
+{
+	return dir;
 }

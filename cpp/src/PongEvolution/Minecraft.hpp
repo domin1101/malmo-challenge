@@ -18,19 +18,29 @@
 class Agent;
 class AbstractTile;
 
-#define DATASET_PONG_RATING "Pong rating"
+#define DATASET_AVG_REWARD "Avg reward"
+#define DATASET_BEST_REWARD "Best reward"
 
-class Minecraft : public LightBulb::AbstractCoevolutionEnvironment
+enum MinecraftEvents
+{
+	EVT_FIELD_CHANGED
+};
+
+class Minecraft : public LightBulb::AbstractCoevolutionEnvironment, public LightBulb::Observable<MinecraftEvents, Minecraft>
 {
 private:
 	std::vector<std::vector<int>> fields;
 	Agent* currentAi1;
 	Agent* currentAi2;
 	int currentPlayer;
+	bool watchMode;
 	std::map<int, int> grayPalette;
+	int bestReward;
+	int totalReward;
+	int matchCount;
 protected:
 	LightBulb::AbstractIndividual* createNewIndividual() override;
-	int simulateGame(Agent& ai1, Agent& ai2);
+	int simulateGame(Agent& ai1, Agent& ai2, int startPlayer);
 	std::unique_ptr<LightBulb::FeedForwardNetworkTopologyOptions> options;
 	int doCompare(LightBulb::AbstractIndividual& obj1, LightBulb::AbstractIndividual& obj2, int round) override;
 public:
@@ -50,6 +60,16 @@ public:
 	void setBlock(std::vector<double> &input, int x, int y, int dir, int value);
 
 	void setBlock(std::vector<double> &input, int x, int y, int value);
+	void startWatchMode();
+	void stopWatchMode();
+
+	const std::vector<std::vector<int>>& getField();
+	const Agent& getAgent1();
+	const Agent& getAgent2();
+
+	std::vector<std::string> getDataSetLabels() const;
+
+	int rateIndividual(LightBulb::AbstractIndividual &individual);
 };
 
 // USE_EXISTING_PARENT_SERIALIZATION_WITHOUT_NAMESPACE(Pong, LightBulb::AbstractCoevolutionEnvironment, LightBulb::AbstractEvolutionEnvironment);

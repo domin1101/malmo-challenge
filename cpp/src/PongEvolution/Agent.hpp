@@ -25,10 +25,12 @@ public:
 	Agent(LightBulb::FeedForwardNetworkTopologyOptions& options, Minecraft& pong_);
 	Agent() = default;
 	void setEnv(Minecraft& currentGame_);
-	int getX();
-	int getY();
+	int getX()const;
+	int getY()const;
 
 	void setPositionAndDir(int x_, int y_, int dir_);
+
+	int getDir()const;
 };
 
 // USE_PARENT_SERIALIZATION_WITHOUT_NAMESPACE(PongAI, LightBulb::AbstractDefaultIndividual);
