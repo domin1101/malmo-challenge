@@ -178,6 +178,15 @@ void Minecraft::startNewGame(Agent& ai1, Agent& ai2)
 {
 	ai1.setPositionAndDir(2, 3, 270);
 	ai2.setPositionAndDir(2, 3, 270);
+	do
+	{
+		ai1.setPositionAndDir(getRandomGenerator().randInt(2, 6), getRandomGenerator().randInt(1, 5), getRandomGenerator().randInt(0, 3) * 90);
+	} while (!isFieldAllowed(ai1.getX(), ai1.getY() + 1));
+
+	do
+	{
+		ai2.setPositionAndDir(getRandomGenerator().randInt(2, 6), getRandomGenerator().randInt(1, 5), getRandomGenerator().randInt(0, 3) * 90);
+	} while (!isFieldAllowed(ai2.getX(), ai2.getY() + 1));
 }
 
 void Minecraft::getNNInput(std::vector<double>& input)

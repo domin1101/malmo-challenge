@@ -18,9 +18,10 @@
 #include <LightBulbApp/TrainingPlans/Preferences/DoublePreference.hpp>
 #include <LightBulbApp/TrainingPlans/Preferences/IntegerPreference.hpp>
 #include <LightBulbApp/TrainingPlans/Preferences/BooleanPreference.hpp>
-#include <LightBulb/NeuronDescription/SameNeuronDescriptionFactory.hpp>
+#include <LightBulb/NeuronDescription/DifferentNeuronDescriptionFactory.hpp>
 #include <LightBulb/Function/InputFunction/WeightedSumFunction.hpp>
-#include <LightBulb/Function/ActivationFunction/BinaryFunction.hpp>
+#include <LightBulb/Function/ActivationFunction/FermiFunction.hpp>
+#include <LightBulb/Function/ActivationFunction/RectifierFunction.hpp>
 #include <LightBulb/NeuronDescription/NeuronDescription.hpp>
 #include <LightBulb/Learning/Evolution/MagnitudeBasedPruningMutationAlgorithm.hpp>
 #include <LightBulb/Learning/Evolution/NetworkGrowMutationAlgorithm.hpp>
@@ -93,7 +94,7 @@ FeedForwardNetworkTopologyOptions MalmoEvolution::getNetworkOptions()
 		options.neuronsPerLayerCount.push_back(getIntegerPreference(PREFERENCE_NEURON_COUNT_SECOND_LAYER));
 	options.neuronsPerLayerCount.push_back(3);
 
-	options.descriptionFactory = new SameNeuronDescriptionFactory(new NeuronDescription(new WeightedSumFunction(), new BinaryFunction()));
+	options.descriptionFactory = new DifferentNeuronDescriptionFactory(new NeuronDescription(new WeightedSumFunction(), new RectifierFunction()), new NeuronDescription(new WeightedSumFunction(), new FermiFunction()));
 	return options;
 }
 
