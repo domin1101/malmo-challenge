@@ -167,6 +167,7 @@ int Minecraft::rateIndividual(AbstractIndividual& individual)
 	bestReward = -25;
 	totalReward = 0;
 	matchCount = 0;
+	return 0;
 }
 
 bool Minecraft::isDone(Agent& ai1, Agent& ai2, int currentPlayer)

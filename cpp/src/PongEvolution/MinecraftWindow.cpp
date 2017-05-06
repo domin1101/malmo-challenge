@@ -105,8 +105,8 @@ void MinecraftWindow::render(wxDC& dc)
 
 	if (fields.size())
 	{
-		float sizex = (float)panel->m_width / fields.size();
-		float sizey = (float)panel->m_height / fields[0].size();
+		float sizex = (float)panel->GetSize().GetWidth() / fields.size();
+		float sizey = (float)panel->GetSize().GetHeight() / fields[0].size();
 
 		for (int x = 0; x < fields.size(); x++)
 		{
