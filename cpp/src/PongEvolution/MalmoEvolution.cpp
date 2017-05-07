@@ -21,12 +21,14 @@
 #include <LightBulb/NeuronDescription/DifferentNeuronDescriptionFactory.hpp>
 #include <LightBulb/Function/InputFunction/WeightedSumFunction.hpp>
 #include <LightBulb/Function/ActivationFunction/FermiFunction.hpp>
+#include <LightBulb/Function/ActivationFunction/BinaryFunction.hpp>
 #include <LightBulb/Function/ActivationFunction/RectifierFunction.hpp>
 #include <LightBulb/NeuronDescription/NeuronDescription.hpp>
 #include <LightBulb/Learning/Evolution/MagnitudeBasedPruningMutationAlgorithm.hpp>
 #include <LightBulb/Learning/Evolution/NetworkGrowMutationAlgorithm.hpp>
 #include <LightBulb/Learning/Evolution/PhasedTopologyMutationAlgorithm.hpp>
 #include <LightBulb/Learning/Evolution/RandomHallOfFameAlgorithm.hpp>
+#include <LightBulb/Learning/Evolution/WeightDecayFitnessFunction.hpp>
 
 #define PREFERENCE_POPULATION_SIZE "Population size"
 #define PREFERENCE_MUTATION_PERCENTAGE "Mutation percentage"
@@ -50,13 +52,13 @@ AbstractLearningRule* MalmoEvolution::createLearningRate()
 	EvolutionLearningRuleOptions options;
 	
 	options.creationCommands.push_back(new ConstantCreationCommand(getIntegerPreference(PREFERENCE_CREATE_UP_TO)));
-	options.exitConditions.push_back(new PerfectIndividualFoundCondition(1000));
-	options.reuseCommands.push_back(new ConstantReuseCommand(new BestReuseSelector(), 16));
+	//options.exitConditions.push_back(new PerfectIndividualFoundCondition(1000));
+	options.reuseCommands.push_back(new ConstantReuseCommand(new BestReuseSelector(), 1));
 	options.selectionCommands.push_back(new BestSelectionCommand(getIntegerPreference(PREFERENCE_POPULATION_SIZE)));
 	options.mutationsCommands.push_back(new ConstantMutationCommand(new MutationAlgorithm(getDoublePreference(PREFERENCE_MUTATIONSTRENGTH_CHANGESPEED)), new RandomSelector(new RankBasedRandomFunction()), getDoublePreference(PREFERENCE_MUTATION_PERCENTAGE)));
 	options.recombinationCommands.push_back(new ConstantRecombinationCommand(new RecombinationAlgorithm(), new RandomSelector(new RankBasedRandomFunction()), getDoublePreference(PREFERENCE_RECOMBINATION_PERCENTAGE)));
 	//options.mutationsCommands.push_back(new ConstantMutationCommand(new MagnitudeBasedPruningMutationAlgorithm(1, 0, true, true), new RandomSelector(new RankBasedRandomFunction()), getDoublePreference(PREFERENCE_TOPOLOGY_MUTATION_PERCENTAGE)));
-	//options.fitnessFunctions.push_back(new NeuronDecayFitnessFunction(getDoublePreference(PREFERENCE_WEIGHTDECAY_FAC)));
+	//options.fitnessFunctions.push_back(new WeightDecayFitnessFunction(getDoublePreference(PREFERENCE_WEIGHTDECAY_FAC)));
 	std::vector<unsigned int> maxNeuronsPerLayer(4);
 	maxNeuronsPerLayer[0] = 6;
 	maxNeuronsPerLayer[1] = 100;
@@ -88,13 +90,13 @@ FeedForwardNetworkTopologyOptions MalmoEvolution::getNetworkOptions()
 	FeedForwardNetworkTopologyOptions options;
 	options.enableShortcuts = getBooleanPreference(PREFERENCE_SHORTCUT_ENABLE);
 
-	options.neuronsPerLayerCount.push_back(18 * 18);
+	options.neuronsPerLayerCount.push_back(6);
 	options.neuronsPerLayerCount.push_back(getIntegerPreference(PREFERENCE_NEURON_COUNT_FIRST_LAYER));
 	if (getBooleanPreference(PREFERENCE_SECOND_LAYER_ENABLE))
 		options.neuronsPerLayerCount.push_back(getIntegerPreference(PREFERENCE_NEURON_COUNT_SECOND_LAYER));
 	options.neuronsPerLayerCount.push_back(3);
 
-	options.descriptionFactory = new DifferentNeuronDescriptionFactory(new NeuronDescription(new WeightedSumFunction(), new RectifierFunction()), new NeuronDescription(new WeightedSumFunction(), new FermiFunction()));
+	options.descriptionFactory = new DifferentNeuronDescriptionFactory(new NeuronDescription(new WeightedSumFunction(), new RectifierFunction()), new NeuronDescription(new WeightedSumFunction(), new BinaryFunction()));
 	return options;
 }
 
@@ -132,7 +134,7 @@ MalmoEvolution::MalmoEvolution()
 	addPreference(new IntegerPreference(PREFERENCE_POPULATION_SIZE, 15, 1, 1000));
 	addPreference(new IntegerPreference(PREFERENCE_CREATE_UP_TO, 25, 1, 1000));
 	addPreference(new IntegerPreference(PREFERENCE_COMPETITIONS_SIZE, 10, 1, 1000));
-	addPreference(new IntegerPreference(PREFERENCE_HALLOFFAME_COMPETITIONS_SIZE, 5, 1, 1000));
+	addPreference(new IntegerPreference(PREFERENCE_HALLOFFAME_COMPETITIONS_SIZE, 0, 1, 1000));
 	addPreference(new BooleanPreference(PREFERENCE_SHORTCUT_ENABLE, false));
 	addPreference(new IntegerPreference(PREFERENCE_NEURON_COUNT_FIRST_LAYER, 32, 1, 30));
 	addPreference(new BooleanPreference(PREFERENCE_SECOND_LAYER_ENABLE, false));

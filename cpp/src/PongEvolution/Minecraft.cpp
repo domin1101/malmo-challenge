@@ -6,6 +6,7 @@
 #include <iomanip>
 #include <chrono>
 #include <thread>
+#include <numeric>
 
 #define FIELD_SIZE 9
 #define DOUBLEFIELD_SIZE 2 * FIELD_SIZE
@@ -22,6 +23,7 @@ std::vector<std::string> Minecraft::getDataSetLabels() const
 	auto labels = AbstractCoevolutionEnvironment::getDataSetLabels();
 	labels.push_back(std::string(parasiteEnvironment ? DATASET_PARASITE_PREFIX : "") + DATASET_AVG_REWARD);
 	labels.push_back(std::string(parasiteEnvironment ? DATASET_PARASITE_PREFIX : "") + DATASET_BEST_REWARD);
+	labels.push_back(std::string(parasiteEnvironment ? DATASET_PARASITE_PREFIX : "") + DATASET_AVG_MUT_STRENGTH);
 	return labels;
 }
 
@@ -124,6 +126,8 @@ int Minecraft::simulateGame(Agent& ai1, Agent& ai2, int startPlayer)
 
 	startNewGame(ai1, ai2);
 
+	if (parasiteEnvironment)
+		startPlayer = 1 - startPlayer;
 	currentPlayer = startPlayer;
 	std::vector<int> rewards = {0, 0};
 
@@ -142,7 +146,7 @@ int Minecraft::simulateGame(Agent& ai1, Agent& ai2, int startPlayer)
 			std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 		}
 
-		if (isDone(ai1, ai2, currentPlayer))
+		if (isDone(ai1, ai2, currentPlayer, startPlayer))
 			break;
 	}
 
@@ -164,22 +168,23 @@ int Minecraft::rateIndividual(AbstractIndividual& individual)
 {
 	learningState->addData(std::string(parasiteEnvironment ? DATASET_PARASITE_PREFIX : "") + DATASET_BEST_REWARD, static_cast<double>(bestReward));
 	learningState->addData(std::string(parasiteEnvironment ? DATASET_PARASITE_PREFIX : "") + DATASET_AVG_REWARD, static_cast<double>(totalReward) / matchCount);
+	learningState->addData(std::string(parasiteEnvironment ? DATASET_PARASITE_PREFIX : "") + DATASET_AVG_MUT_STRENGTH, std::accumulate(individual.getMutationStrength().begin(), individual.getMutationStrength().end(), 0.0) / individual.getMutationStrength().size());
 	bestReward = -25;
 	totalReward = 0;
 	matchCount = 0;
 	return 0;
 }
 
-bool Minecraft::isDone(Agent& ai1, Agent& ai2, int currentPlayer)
+bool Minecraft::isDone(Agent& ai1, Agent& ai2, int currentPlayer, int startPlayer)
 {
-	return currentPlayer == 0 && (fields[ai1.getX()][ai1.getY() + 1] == 2 || fields[ai2.getX()][ai2.getY() + 1] == 2);
+	return currentPlayer == startPlayer && (fields[ai1.getX()][ai1.getY() + 1] == 2 || fields[ai2.getX()][ai2.getY() + 1] == 2);
 }
 
 void Minecraft::startNewGame(Agent& ai1, Agent& ai2)
 {
-	ai1.setPositionAndDir(2, 3, 270);
-	ai2.setPositionAndDir(2, 3, 270);
-	do
+	ai1.setPositionAndDir(4, 3, 0);
+	ai2.setPositionAndDir(4, 3, 0);
+	/*do
 	{
 		ai1.setPositionAndDir(getRandomGenerator().randInt(2, 6), getRandomGenerator().randInt(1, 5), getRandomGenerator().randInt(0, 3) * 90);
 	} while (!isFieldAllowed(ai1.getX(), ai1.getY() + 1));
@@ -187,10 +192,10 @@ void Minecraft::startNewGame(Agent& ai1, Agent& ai2)
 	do
 	{
 		ai2.setPositionAndDir(getRandomGenerator().randInt(2, 6), getRandomGenerator().randInt(1, 5), getRandomGenerator().randInt(0, 3) * 90);
-	} while (!isFieldAllowed(ai2.getX(), ai2.getY() + 1));
+	} while (!isFieldAllowed(ai2.getX(), ai2.getY() + 1));*/
 }
 
-void Minecraft::getNNInput(std::vector<double>& input)
+void Minecraft::getNNInputFull(std::vector<double>& input)
 {
 	input.resize(FIELD_SIZE * FIELD_SIZE * 4, 0);
 
@@ -205,12 +210,12 @@ void Minecraft::getNNInput(std::vector<double>& input)
 	if (currentPlayer == 0)
 	{
 		setBlock(input, currentAi1->getX(), currentAi1->getY() + 1, currentAi1->getDir(), 50);
-		setBlock(input, currentAi2->getX(), currentAi2->getY() + 1, currentAi2->getDir(), 100);
+		//setBlock(input, currentAi2->getX(), currentAi2->getY() + 1, currentAi2->getDir(), 100);
 	}
 	else
 	{
 		setBlock(input, currentAi2->getX(), currentAi2->getY() + 1, currentAi2->getDir(), 50);
-		setBlock(input, currentAi1->getX(), currentAi1->getY() + 1, currentAi1->getDir(), 100);
+		//setBlock(input, currentAi1->getX(), currentAi1->getY() + 1, currentAi1->getDir(), 100);
 	}
 
 	/*
@@ -227,6 +232,31 @@ void Minecraft::getNNInput(std::vector<double>& input)
 
 	std::for_each(input.begin(), input.end(), [](double &n){ n /= 255; });
 }
+
+
+void Minecraft::setInputForAgent(std::vector<double>& input, int x, int y, int dir, int offset)
+{
+	input[offset + 0] = (float)x / FIELD_SIZE;
+	input[offset + 1] = (float)y / FIELD_SIZE;
+	input[offset + 2] = (float)dir / 270;
+}
+
+void Minecraft::getNNInput(std::vector<double>& input)
+{
+	input.resize(6, 0);
+
+	if (currentPlayer == 0)
+	{
+		setInputForAgent(input, currentAi1->getX(), currentAi1->getY() + 1, currentAi1->getDir(), 0);
+		setInputForAgent(input, currentAi2->getX(), currentAi2->getY() + 1, currentAi2->getDir(), 3);
+	}
+	else
+	{
+		setInputForAgent(input, currentAi2->getX(), currentAi2->getY() + 1, currentAi2->getDir(), 0);
+		setInputForAgent(input, currentAi1->getX(), currentAi1->getY() + 1, currentAi1->getDir(), 3);
+	}
+}
+
 
 
 

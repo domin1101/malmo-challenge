@@ -20,6 +20,7 @@ class AbstractTile;
 
 #define DATASET_AVG_REWARD "Avg reward"
 #define DATASET_BEST_REWARD "Best reward"
+#define DATASET_AVG_MUT_STRENGTH "Average mutation strength"
 
 enum MinecraftEvents
 {
@@ -46,14 +47,16 @@ protected:
 public:
 	Minecraft(LightBulb::FeedForwardNetworkTopologyOptions& options_, bool isParasiteEnvironment, LightBulb::AbstractCombiningStrategy* combiningStrategy_, LightBulb::AbstractCoevolutionFitnessFunction* fitnessFunction_, const std::shared_ptr<LightBulb::AbstractHallOfFameAlgorithm>* hallOfFameToAddAlgorithm_ = nullptr, const std::shared_ptr<LightBulb::AbstractHallOfFameAlgorithm>* hallOfFameToChallengeAlgorithm_ = nullptr);
 	Minecraft() = default;
+	void setInputForAgent(std::vector<double>& input, int x, int y, int dir, int offset);
 	void getNNInput(std::vector<double>& sight);
 	int getRoundCount() const override;
 
 	void startNewGame(Agent &ai1, Agent &ai2);
+	void getNNInputFull(std::vector<double>& input);
 
 	int getReward(Agent &agent);
 
-	bool isDone(Agent &ai1, Agent &ai2, int currentPlayer);
+	bool isDone(Agent &ai1, Agent &ai2, int currentPlayer, int startPlayer);
 
 	bool isFieldAllowed(int i, int i1);
 
