@@ -19,34 +19,64 @@ void Agent::getNNInput(std::vector<double>& input)
 
 void Agent::interpretNNOutput(std::vector<double>& output)
 {
-	if (output[0] > 0.5 || (output[0] <= 0.5 && output[1] <= 0.5 && output[2] <= 0.5))
+	if (false && static_cast<AbstractCoevolutionEnvironment*>(environment)->isParasiteEnvironment())
 	{
-		int nextX = x;
-		int nextY = y;
-		if (dir == 0)
-			nextY++;
-		else if (dir == 90)
-			nextX--;
-		else if (dir == 180)
-			nextY--;
-		else if (dir == 270)
-			nextX++;
-		if (currentGame->isFieldAllowed(nextX, nextY + 1))
+		if (dir == 0 || dir == 180)
 		{
-			x = nextX;
-			y = nextY;
+			dir -= 90;
+			if (dir < 0)
+				dir += 360;
+		}
+		else
+		{
+			int nextX = x;
+			int nextY = y;
+			if (dir == 0)
+				nextY++;
+			else if (dir == 90)
+				nextX--;
+			else if (dir == 180)
+				nextY--;
+			else if (dir == 270)
+				nextX++;
+			if (currentGame->isFieldAllowed(nextX, nextY + 1))
+			{
+				x = nextX;
+				y = nextY;
+			}
 		}
 	}
-	else if (output[1] > 0.5)
+	else
 	{
-		dir -= 90;
-		if (dir < 0)
-			dir += 360;
-	}
-	else if (output[2] > 0.5)
-	{
-		dir += 90;
-		dir %= 360;
+		if (output[0] > 0.5 || (output[0] <= 0.5 && output[1] <= 0.5 && output[2] <= 0.5))
+		{
+			int nextX = x;
+			int nextY = y;
+			if (dir == 0)
+				nextY++;
+			else if (dir == 90)
+				nextX--;
+			else if (dir == 180)
+				nextY--;
+			else if (dir == 270)
+				nextX++;
+			if (currentGame->isFieldAllowed(nextX, nextY + 1))
+			{
+				x = nextX;
+				y = nextY;
+			}
+		}
+		else if (output[1] > 0.5)
+		{
+			dir -= 90;
+			if (dir < 0)
+				dir += 360;
+		}
+		else if (output[2] > 0.5)
+		{
+			dir += 90;
+			dir %= 360;
+		}
 	}
 }
 

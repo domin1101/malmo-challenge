@@ -36,6 +36,9 @@
     <ClCompile Include="src\pongevolution\MinecraftWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\BackpropagationXor\BackpropagationXorExample.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\pongevolution\Agent.hpp">
@@ -54,6 +57,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\pongevolution\MinecraftWindow.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\BackpropagationXor\BackpropagationXorExample.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

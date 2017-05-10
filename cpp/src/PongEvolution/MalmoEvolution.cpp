@@ -79,6 +79,7 @@ AbstractLearningRule* MalmoEvolution::createLearningRate()
 	CoevolutionLearningRuleOptions coevolutionLearningRuleOptions;
 	coevolutionLearningRuleOptions.learningRule1 = learningRule1;
 	coevolutionLearningRuleOptions.learningRule2 = learningRule2;
+	coevolutionLearningRuleOptions.maxIterationsPerTry = 1000000;
 	fillDefaultLearningRuleOptions(coevolutionLearningRuleOptions);
 
 	return new CoevolutionLearningRule(coevolutionLearningRuleOptions);
@@ -90,7 +91,7 @@ FeedForwardNetworkTopologyOptions MalmoEvolution::getNetworkOptions()
 	FeedForwardNetworkTopologyOptions options;
 	options.enableShortcuts = getBooleanPreference(PREFERENCE_SHORTCUT_ENABLE);
 
-	options.neuronsPerLayerCount.push_back(6);
+	options.neuronsPerLayerCount.push_back(16);
 	options.neuronsPerLayerCount.push_back(getIntegerPreference(PREFERENCE_NEURON_COUNT_FIRST_LAYER));
 	if (getBooleanPreference(PREFERENCE_SECOND_LAYER_ENABLE))
 		options.neuronsPerLayerCount.push_back(getIntegerPreference(PREFERENCE_NEURON_COUNT_SECOND_LAYER));
@@ -136,9 +137,9 @@ MalmoEvolution::MalmoEvolution()
 	addPreference(new IntegerPreference(PREFERENCE_COMPETITIONS_SIZE, 10, 1, 1000));
 	addPreference(new IntegerPreference(PREFERENCE_HALLOFFAME_COMPETITIONS_SIZE, 0, 1, 1000));
 	addPreference(new BooleanPreference(PREFERENCE_SHORTCUT_ENABLE, false));
-	addPreference(new IntegerPreference(PREFERENCE_NEURON_COUNT_FIRST_LAYER, 32, 1, 30));
-	addPreference(new BooleanPreference(PREFERENCE_SECOND_LAYER_ENABLE, false));
-	addPreference(new IntegerPreference(PREFERENCE_NEURON_COUNT_SECOND_LAYER, 1, 1, 30));
+	addPreference(new IntegerPreference(PREFERENCE_NEURON_COUNT_FIRST_LAYER, 64, 1, 30));
+	addPreference(new BooleanPreference(PREFERENCE_SECOND_LAYER_ENABLE, true));
+	addPreference(new IntegerPreference(PREFERENCE_NEURON_COUNT_SECOND_LAYER, 32, 1, 30));
 	addPreference(new DoublePreference(PREFERENCE_MUTATIONSTRENGTH_CHANGESPEED, 1.6, 0, 2)); // 1.6, simple
 	addPreference(new DoublePreference(PREFERENCE_WEIGHTDECAY_FAC, 0, 0.003, 0.3));
 }

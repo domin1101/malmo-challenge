@@ -99,10 +99,20 @@ Minecraft::Minecraft(FeedForwardNetworkTopologyOptions& options_, bool isParasit
 	bestReward = -25;
 	totalReward = 0;
 	matchCount = 0;
+	lastBestIndividual = nullptr;
 }
 
 int Minecraft::doCompare(AbstractIndividual& obj1, AbstractIndividual& obj2, int round)
 {
+	/*for (int i = 0; i < 3; i++)
+	{
+		int reward = simulateGame(static_cast<Agent&>(obj1), static_cast<Agent&>(obj2), round);
+		if (isParasiteEnvironment() && reward == 1)
+			return 1;
+		else if (!isParasiteEnvironment() && reward == -1)
+			return -1;
+	}
+	return isParasiteEnvironment() ? -1 : 1;*/
 	return simulateGame(static_cast<Agent&>(obj1), static_cast<Agent&>(obj2), round);
 }
 
@@ -140,10 +150,10 @@ int Minecraft::simulateGame(Agent& ai1, Agent& ai2, int startPlayer)
 
 		currentPlayer = 1 - currentPlayer;
 
-		if (watchMode)
+		if (watchMode && lastBestIndividual == &ai1)
 		{
 			throwEvent(EVT_FIELD_CHANGED, *this);
-			std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+			std::this_thread::sleep_for(std::chrono::milliseconds(100));
 		}
 
 		if (isDone(ai1, ai2, currentPlayer, startPlayer))
@@ -166,6 +176,7 @@ int Minecraft::simulateGame(Agent& ai1, Agent& ai2, int startPlayer)
 
 int Minecraft::rateIndividual(AbstractIndividual& individual)
 {
+	lastBestIndividual = &individual;
 	learningState->addData(std::string(parasiteEnvironment ? DATASET_PARASITE_PREFIX : "") + DATASET_BEST_REWARD, static_cast<double>(bestReward));
 	learningState->addData(std::string(parasiteEnvironment ? DATASET_PARASITE_PREFIX : "") + DATASET_AVG_REWARD, static_cast<double>(totalReward) / matchCount);
 	learningState->addData(std::string(parasiteEnvironment ? DATASET_PARASITE_PREFIX : "") + DATASET_AVG_MUT_STRENGTH, std::accumulate(individual.getMutationStrength().begin(), individual.getMutationStrength().end(), 0.0) / individual.getMutationStrength().size());
@@ -182,8 +193,11 @@ bool Minecraft::isDone(Agent& ai1, Agent& ai2, int currentPlayer, int startPlaye
 
 void Minecraft::startNewGame(Agent& ai1, Agent& ai2)
 {
-	ai1.setPositionAndDir(4, 3, 0);
-	ai2.setPositionAndDir(4, 3, 0);
+	ai1.setPositionAndDir(4, 3, getRandomGenerator().randInt(0, 3) * 90);
+	ai2.setPositionAndDir(4, 3, getRandomGenerator().randInt(0, 3) * 90);
+
+	isInteresting = (isParasiteEnvironment() && ai1.getDir() == 0 && ai2.getDir() == 90);
+
 	/*do
 	{
 		ai1.setPositionAndDir(getRandomGenerator().randInt(2, 6), getRandomGenerator().randInt(1, 5), getRandomGenerator().randInt(0, 3) * 90);
@@ -236,14 +250,20 @@ void Minecraft::getNNInputFull(std::vector<double>& input)
 
 void Minecraft::setInputForAgent(std::vector<double>& input, int x, int y, int dir, int offset)
 {
-	input[offset + 0] = (float)x / FIELD_SIZE;
-	input[offset + 1] = (float)y / FIELD_SIZE;
-	input[offset + 2] = (float)dir / 270;
+	x -= 1;
+	input[offset + 0] = x == 1 || x == 3 || x == 5 || x == 7;
+	input[offset + 1] = x == 2 || x == 3 || x == 6 || x == 7;
+	input[offset + 2] = x >= 4;
+	input[offset + 3] = y == 1 || y == 3 || y == 5 || y == 7;
+	input[offset + 4] = y == 2 || y == 3 || y == 6 || y == 7;
+	input[offset + 5] = y >= 4;
+	input[offset + 6] = dir == 180 || dir == 270;
+	input[offset + 7] = dir == 90 || dir == 270;
 }
 
 void Minecraft::getNNInput(std::vector<double>& input)
 {
-	input.resize(6, 0);
+	input.resize(16, 0);
 
 	if (currentPlayer == 0)
 	{

@@ -39,6 +39,8 @@ private:
 	int bestReward;
 	int totalReward;
 	int matchCount;
+	bool isInteresting;
+	LightBulb::AbstractIndividual* lastBestIndividual;
 protected:
 	LightBulb::AbstractIndividual* createNewIndividual() override;
 	int simulateGame(Agent& ai1, Agent& ai2, int startPlayer);
