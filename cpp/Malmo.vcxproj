@@ -108,6 +108,7 @@
     <ClCompile Include="src\BackpropagationXor\BackpropagationXorExample.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\pongevolution\Agent.cpp" />
+    <ClCompile Include="src\PongEvolution\AgentMutationAlgorithm.cpp" />
     <ClCompile Include="src\pongevolution\MalmoEvolution.cpp" />
     <ClCompile Include="src\pongevolution\Minecraft.cpp" />
     <ClCompile Include="src\pongevolution\MinecraftController.cpp" />
@@ -117,6 +118,7 @@
   <ItemGroup>
     <ClInclude Include="src\BackpropagationXor\BackpropagationXorExample.hpp" />
     <ClInclude Include="src\pongevolution\Agent.hpp" />
+    <ClInclude Include="src\PongEvolution\AgentMutationAlgorithm.hpp" />
     <ClInclude Include="src\pongevolution\MalmoEvolution.hpp" />
     <ClInclude Include="src\pongevolution\Minecraft.hpp" />
     <ClInclude Include="src\pongevolution\MinecraftController.hpp" />

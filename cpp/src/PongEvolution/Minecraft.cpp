@@ -193,19 +193,35 @@ bool Minecraft::isDone(Agent& ai1, Agent& ai2, int currentPlayer, int startPlaye
 
 void Minecraft::startNewGame(Agent& ai1, Agent& ai2)
 {
-	ai1.setPositionAndDir(4, 3, getRandomGenerator().randInt(0, 3) * 90);
-	ai2.setPositionAndDir(4, 3, getRandomGenerator().randInt(0, 3) * 90);
+	int startX;
+	int startY;
+	int startDir;
+	if (isParasiteEnvironment())
+	{
+		startX = ai1.getStartX();
+		startY = ai1.getStartY();
+		startDir = ai1.getStartDir();
+	}
+	else
+	{
+		startX = ai2.getStartX();
+		startY = ai2.getStartY();
+		startDir = ai2.getStartDir();
+	}
+
+	ai1.setPositionAndDir(startX, startY, startDir);
+	ai2.setPositionAndDir(startX, startY, startDir);
 
 	isInteresting = (isParasiteEnvironment() && ai1.getDir() == 0 && ai2.getDir() == 90);
-
-	/*do
+	/*
+	do
 	{
-		ai1.setPositionAndDir(getRandomGenerator().randInt(2, 6), getRandomGenerator().randInt(1, 5), getRandomGenerator().randInt(0, 3) * 90);
+		ai1.setPositionAndDir(getRandomGenerator().randInt(2, 6), 3, getRandomGenerator().randInt(0, 3) * 90);
 	} while (!isFieldAllowed(ai1.getX(), ai1.getY() + 1));
 
 	do
 	{
-		ai2.setPositionAndDir(getRandomGenerator().randInt(2, 6), getRandomGenerator().randInt(1, 5), getRandomGenerator().randInt(0, 3) * 90);
+		ai2.setPositionAndDir(getRandomGenerator().randInt(2, 6), 3, getRandomGenerator().randInt(0, 3) * 90);
 	} while (!isFieldAllowed(ai2.getX(), ai2.getY() + 1));*/
 }
 
@@ -251,6 +267,7 @@ void Minecraft::getNNInputFull(std::vector<double>& input)
 void Minecraft::setInputForAgent(std::vector<double>& input, int x, int y, int dir, int offset)
 {
 	x -= 1;
+	y -= 1;
 	input[offset + 0] = x == 1 || x == 3 || x == 5 || x == 7;
 	input[offset + 1] = x == 2 || x == 3 || x == 6 || x == 7;
 	input[offset + 2] = x >= 4;
@@ -268,12 +285,12 @@ void Minecraft::getNNInput(std::vector<double>& input)
 	if (currentPlayer == 0)
 	{
 		setInputForAgent(input, currentAi1->getX(), currentAi1->getY() + 1, currentAi1->getDir(), 0);
-		setInputForAgent(input, currentAi2->getX(), currentAi2->getY() + 1, currentAi2->getDir(), 3);
+		setInputForAgent(input, currentAi2->getX(), currentAi2->getY() + 1, currentAi2->getDir(), 8);
 	}
 	else
 	{
 		setInputForAgent(input, currentAi2->getX(), currentAi2->getY() + 1, currentAi2->getDir(), 0);
-		setInputForAgent(input, currentAi1->getX(), currentAi1->getY() + 1, currentAi1->getDir(), 3);
+		setInputForAgent(input, currentAi1->getX(), currentAi1->getY() + 1, currentAi1->getDir(), 8);
 	}
 }
 
@@ -327,7 +344,7 @@ int Minecraft::getReward(Agent &agent)
 
 bool Minecraft::isFieldAllowed(int x, int y)
 {
-	return fields[x][y] != 0;
+	return x >= 0 && y >= 0 && x < FIELD_SIZE && y < FIELD_SIZE && fields[x][y] != 0;
 }
 
 void Minecraft::startWatchMode()

@@ -19,6 +19,9 @@ protected:
 	int x;
 	int y;
 	int dir;
+	int startX;
+	int startY;
+	int startDir;
 	void getNNInput(std::vector<double>& input) override;
 	void interpretNNOutput(std::vector<double>& output) override;
 public:
@@ -30,7 +33,14 @@ public:
 
 	void setPositionAndDir(int x_, int y_, int dir_);
 
+	int getStartX() const;
+	int getStartY() const;
+	int getStartDir() const;
+	void setStartX(int startX);
+	void setStartY(int startY);
+	void setStartDir(int startDir);
 	int getDir()const;
+	void copyPropertiesFrom(AbstractIndividual& notUsedIndividual) override;
 };
 
 // USE_PARENT_SERIALIZATION_WITHOUT_NAMESPACE(PongAI, LightBulb::AbstractDefaultIndividual);

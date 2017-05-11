@@ -9,6 +9,14 @@ Agent::Agent(FeedForwardNetworkTopologyOptions& options, Minecraft& pong_)
 {
 	currentGame = &pong_;
 	buildNeuralNetwork(options);
+
+	do
+	{
+		startX = currentGame->getRandomGenerator().randInt(2, 6);
+		startY = currentGame->getRandomGenerator().randInt(1, 5);
+	} while (!currentGame->isFieldAllowed(startX, startY + 1));
+
+	dir = currentGame->getRandomGenerator().randInt(0, 3) * 90;
 }
 
 
@@ -103,7 +111,48 @@ void Agent::setPositionAndDir(int x_, int y_, int dir_)
 	dir = dir_;
 }
 
+int Agent::getStartX() const
+{
+	return startX;
+}
+
+int Agent::getStartY() const
+{
+	return startY;
+}
+
+int Agent::getStartDir() const
+{
+	return startDir;
+}
+
+void Agent::setStartX(int startX)
+{
+	if (currentGame->isFieldAllowed(startX, startY + 1))
+		this->startX = startX;
+}
+
+void Agent::setStartY(int startY)
+{
+	if (currentGame->isFieldAllowed(startX, startY + 1))
+		this->startY = startY;
+}
+
+void Agent::setStartDir(int startDir)
+{
+	this->startDir = startDir;
+}
+
 int Agent::getDir()const
 {
 	return dir;
+}
+
+void Agent::copyPropertiesFrom(AbstractIndividual& notUsedIndividual)
+{
+	AbstractDefaultIndividual::copyPropertiesFrom(notUsedIndividual);
+	Agent& agent = dynamic_cast<Agent&>(notUsedIndividual);
+	startX = agent.startX;
+	startY = agent.startY;
+	startDir = agent.startDir;
 }
