@@ -12,11 +12,11 @@ Agent::Agent(FeedForwardNetworkTopologyOptions& options, Minecraft& pong_)
 
 	do
 	{
-		startX = currentGame->getRandomGenerator().randInt(2, 6);
-		startY = currentGame->getRandomGenerator().randInt(1, 5);
-	} while (!currentGame->isFieldAllowed(startX, startY + 1));
+		startLocation.x = currentGame->getRandomGenerator().randInt(2, 6);
+		startLocation.y = currentGame->getRandomGenerator().randInt(1, 5);
+	} while (!currentGame->isFieldAllowed(startLocation.x, startLocation.y + 1));
 
-	dir = currentGame->getRandomGenerator().randInt(0, 3) * 90;
+	startLocation.dir = currentGame->getRandomGenerator().randInt(0, 3) * 90;
 }
 
 
@@ -29,28 +29,28 @@ void Agent::interpretNNOutput(std::vector<double>& output)
 {
 	if (false && static_cast<AbstractCoevolutionEnvironment*>(environment)->isParasiteEnvironment())
 	{
-		if (dir == 0 || dir == 180)
+		if (location.dir == 0 || location.dir == 180)
 		{
-			dir -= 90;
-			if (dir < 0)
-				dir += 360;
+			location.dir -= 90;
+			if (location.dir < 0)
+				location.dir += 360;
 		}
 		else
 		{
-			int nextX = x;
-			int nextY = y;
-			if (dir == 0)
+			int nextX = location.x;
+			int nextY = location.y;
+			if (location.dir == 0)
 				nextY++;
-			else if (dir == 90)
+			else if (location.dir == 90)
 				nextX--;
-			else if (dir == 180)
+			else if (location.dir == 180)
 				nextY--;
-			else if (dir == 270)
+			else if (location.dir == 270)
 				nextX++;
 			if (currentGame->isFieldAllowed(nextX, nextY + 1))
 			{
-				x = nextX;
-				y = nextY;
+				location.x = nextX;
+				location.y = nextY;
 			}
 		}
 	}
@@ -58,32 +58,32 @@ void Agent::interpretNNOutput(std::vector<double>& output)
 	{
 		if (output[0] > 0.5 || (output[0] <= 0.5 && output[1] <= 0.5 && output[2] <= 0.5))
 		{
-			int nextX = x;
-			int nextY = y;
-			if (dir == 0)
+			int nextX = location.x;
+			int nextY = location.y;
+			if (location.dir == 0)
 				nextY++;
-			else if (dir == 90)
+			else if (location.dir == 90)
 				nextX--;
-			else if (dir == 180)
+			else if (location.dir == 180)
 				nextY--;
-			else if (dir == 270)
+			else if (location.dir == 270)
 				nextX++;
 			if (currentGame->isFieldAllowed(nextX, nextY + 1))
 			{
-				x = nextX;
-				y = nextY;
+				location.x = nextX;
+				location.y = nextY;
 			}
 		}
 		else if (output[1] > 0.5)
 		{
-			dir -= 90;
-			if (dir < 0)
-				dir += 360;
+			location.dir -= 90;
+			if (location.dir < 0)
+				location.dir += 360;
 		}
 		else if (output[2] > 0.5)
 		{
-			dir += 90;
-			dir %= 360;
+			location.dir += 90;
+			location.dir %= 360;
 		}
 	}
 }
@@ -94,65 +94,31 @@ void Agent::setEnv(Minecraft &currentGame_)
 	currentGame = &currentGame_;
 }
 
-int Agent::getX()const
+Location Agent::getLocation() const
 {
-	return x;
+	return location;
 }
 
-int Agent::getY()const
+Location Agent::getStartLocation() const
 {
-	return y;
+	return startLocation;
 }
 
-void Agent::setPositionAndDir(int x_, int y_, int dir_)
+void Agent::setLocation(Location location)
 {
-	x = x_;
-	y = y_;
-	dir = dir_;
+	this->location = location;
 }
 
-int Agent::getStartX() const
+Location Agent::setStartLocation(Location startLocation)
 {
-	return startX;
-}
-
-int Agent::getStartY() const
-{
-	return startY;
-}
-
-int Agent::getStartDir() const
-{
-	return startDir;
-}
-
-void Agent::setStartX(int startX)
-{
-	if (currentGame->isFieldAllowed(startX, startY + 1))
-		this->startX = startX;
-}
-
-void Agent::setStartY(int startY)
-{
-	if (currentGame->isFieldAllowed(startX, startY + 1))
-		this->startY = startY;
-}
-
-void Agent::setStartDir(int startDir)
-{
-	this->startDir = startDir;
-}
-
-int Agent::getDir()const
-{
-	return dir;
+	if (currentGame->isFieldAllowed(startLocation.x, startLocation.y + 1))
+		this->startLocation = startLocation;
+	return this->startLocation;
 }
 
 void Agent::copyPropertiesFrom(AbstractIndividual& notUsedIndividual)
 {
 	AbstractDefaultIndividual::copyPropertiesFrom(notUsedIndividual);
 	Agent& agent = dynamic_cast<Agent&>(notUsedIndividual);
-	startX = agent.startX;
-	startY = agent.startY;
-	startDir = agent.startDir;
+	startLocation = agent.startLocation;
 }

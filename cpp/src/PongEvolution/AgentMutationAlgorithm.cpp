@@ -12,12 +12,19 @@ void AgentMutationAlgorithm::execute(LightBulb::AbstractIndividual& individual1)
 	MutationAlgorithm::execute(individual1);
 	Agent& agent = dynamic_cast<Agent&>(individual1);
 
-	agent.setStartX(agent.getStartX() + (int)zigguratGenerator->randDouble());
-	agent.setStartY(agent.getStartY() + (int)zigguratGenerator->randDouble());
-	int newDir = (agent.getStartDir() + (int)zigguratGenerator->randDouble() * 90) % 360;
-	if (newDir < 0)
-		newDir += 360;
-	agent.setStartDir(newDir);
+	Location startLocation = agent.getLocation();
+
+	startLocation.x += (int)zigguratGenerator->randDouble();
+	startLocation = agent.setStartLocation(startLocation);
+
+	startLocation.y += (int)zigguratGenerator->randDouble();
+	startLocation = agent.setStartLocation(startLocation);
+
+	startLocation.dir += (int)zigguratGenerator->randDouble() * 90;
+	if (startLocation.dir < 0)
+		startLocation.dir += 360;
+	startLocation.dir %= 360;
+	startLocation = agent.setStartLocation(startLocation);
 }
 
 LightBulb::AbstractMutationAlgorithm* AgentMutationAlgorithm::clone() const

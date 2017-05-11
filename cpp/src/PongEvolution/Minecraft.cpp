@@ -188,41 +188,35 @@ int Minecraft::rateIndividual(AbstractIndividual& individual)
 
 bool Minecraft::isDone(Agent& ai1, Agent& ai2, int currentPlayer, int startPlayer)
 {
-	return currentPlayer == startPlayer && (fields[ai1.getX()][ai1.getY() + 1] == 2 || fields[ai2.getX()][ai2.getY() + 1] == 2);
+	return currentPlayer == startPlayer && (fields[ai1.getLocation().x][ai1.getLocation().y + 1] == 2 || fields[ai2.getLocation().x][ai2.getLocation().y + 1] == 2);
 }
 
 void Minecraft::startNewGame(Agent& ai1, Agent& ai2)
 {
-	int startX;
-	int startY;
-	int startDir;
+	Location startLocation;
 	if (isParasiteEnvironment())
 	{
-		startX = ai1.getStartX();
-		startY = ai1.getStartY();
-		startDir = ai1.getStartDir();
+		startLocation = ai1.getStartLocation();
 	}
 	else
 	{
-		startX = ai2.getStartX();
-		startY = ai2.getStartY();
-		startDir = ai2.getStartDir();
+		startLocation = ai2.getStartLocation();
 	}
 
-	ai1.setPositionAndDir(startX, startY, startDir);
-	ai2.setPositionAndDir(startX, startY, startDir);
+	ai1.setLocation(startLocation);
+	ai2.setLocation(startLocation);
 
-	isInteresting = (isParasiteEnvironment() && ai1.getDir() == 0 && ai2.getDir() == 90);
+	isInteresting = (isParasiteEnvironment() && ai1.getLocation().dir == 0 && ai2.getLocation().dir == 90);
 	/*
 	do
 	{
 		ai1.setPositionAndDir(getRandomGenerator().randInt(2, 6), 3, getRandomGenerator().randInt(0, 3) * 90);
-	} while (!isFieldAllowed(ai1.getX(), ai1.getY() + 1));
+	} while (!isFieldAllowed(ai1.getLocation().x, ai1.getLocation().y + 1));
 
 	do
 	{
 		ai2.setPositionAndDir(getRandomGenerator().randInt(2, 6), 3, getRandomGenerator().randInt(0, 3) * 90);
-	} while (!isFieldAllowed(ai2.getX(), ai2.getY() + 1));*/
+	} while (!isFieldAllowed(ai2.getLocation().x, ai2.getLocation().y + 1));*/
 }
 
 void Minecraft::getNNInputFull(std::vector<double>& input)
@@ -239,13 +233,13 @@ void Minecraft::getNNInputFull(std::vector<double>& input)
 
 	if (currentPlayer == 0)
 	{
-		setBlock(input, currentAi1->getX(), currentAi1->getY() + 1, currentAi1->getDir(), 50);
-		//setBlock(input, currentAi2->getX(), currentAi2->getY() + 1, currentAi2->getDir(), 100);
+		setBlock(input, currentAi1->getLocation().x, currentAi1->getLocation().y + 1, currentAi1->getLocation().dir, 50);
+		//setBlock(input, currentAi2->getLocation().x, currentAi2->getLocation().y + 1, currentAi2->getLocation().dir, 100);
 	}
 	else
 	{
-		setBlock(input, currentAi2->getX(), currentAi2->getY() + 1, currentAi2->getDir(), 50);
-		//setBlock(input, currentAi1->getX(), currentAi1->getY() + 1, currentAi1->getDir(), 100);
+		setBlock(input, currentAi2->getLocation().x, currentAi2->getLocation().y + 1, currentAi2->getLocation().dir, 50);
+		//setBlock(input, currentAi1->getLocation().x, currentAi1->getLocation().y + 1, currentAi1->getLocation().dir, 100);
 	}
 
 	/*
@@ -284,13 +278,13 @@ void Minecraft::getNNInput(std::vector<double>& input)
 
 	if (currentPlayer == 0)
 	{
-		setInputForAgent(input, currentAi1->getX(), currentAi1->getY() + 1, currentAi1->getDir(), 0);
-		setInputForAgent(input, currentAi2->getX(), currentAi2->getY() + 1, currentAi2->getDir(), 8);
+		setInputForAgent(input, currentAi1->getLocation().x, currentAi1->getLocation().y + 1, currentAi1->getLocation().dir, 0);
+		setInputForAgent(input, currentAi2->getLocation().x, currentAi2->getLocation().y + 1, currentAi2->getLocation().dir, 8);
 	}
 	else
 	{
-		setInputForAgent(input, currentAi2->getX(), currentAi2->getY() + 1, currentAi2->getDir(), 0);
-		setInputForAgent(input, currentAi1->getX(), currentAi1->getY() + 1, currentAi1->getDir(), 8);
+		setInputForAgent(input, currentAi2->getLocation().x, currentAi2->getLocation().y + 1, currentAi2->getLocation().dir, 0);
+		setInputForAgent(input, currentAi1->getLocation().x, currentAi1->getLocation().y + 1, currentAi1->getLocation().dir, 8);
 	}
 }
 
@@ -339,7 +333,7 @@ void Minecraft::setBlock(std::vector<double>& input, int x, int y, int dir, int 
 
 int Minecraft::getReward(Agent &agent)
 {
-	return -1 + (fields[agent.getX()][agent.getY() + 1] == 2 ? 5 : 0);
+	return -1 + (fields[agent.getLocation().x][agent.getLocation().y + 1] == 2 ? 5 : 0);
 }
 
 bool Minecraft::isFieldAllowed(int x, int y)

@@ -8,7 +8,7 @@
 #include <memory>
 #include "MinecraftWindow.hpp"
 #include "Minecraft.hpp"
-
+#include "Agent.hpp"
 
 class MinecraftController : public LightBulb::AbstractCustomSubApp
 {
@@ -16,20 +16,8 @@ private:
 	std::unique_ptr<MinecraftWindow> window;
 	Minecraft* environment;
 	std::vector<std::vector<int>> field;
-	int ai1X, ai1Y, ai1Dir, ai2X, ai2Y, ai2Dir;
-public:
-	int getAi1X() const;
-
-	int getAi1Y() const;
-
-	int getAi1Dir() const;
-
-	int getAi2X() const;
-
-	int getAi2Y() const;
-
-	int getAi2Dir() const;
-
+	Location ai1Location;
+	Location ai2Location;
 protected:
 	void prepareClose() override;
 public:
@@ -40,6 +28,8 @@ public:
 	static std::string getLabel();
 	const std::vector<std::vector<int>>& getField();
 	void fieldChanged(Minecraft& pong);
+	Location getAi1Location() const;
+	Location getAi2Location() const;
 };
 
 #endif

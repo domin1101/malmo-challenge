@@ -95,13 +95,8 @@ void MinecraftWindow::render(wxDC& dc)
 	dc.Clear();
 
 	auto& fields = getController().getField();
-	int ai1X = getController().getAi1X();
-	int ai1Y = getController().getAi1Y();
-	int ai1Dir = getController().getAi1Dir();
-	int ai2X = getController().getAi2X();
-	int ai2Y = getController().getAi2Y();
-	int ai2Dir = getController().getAi2Dir();
-
+	Location ai1Location = getController().getAi1Location();
+	Location ai2Location = getController().getAi2Location();
 
 	if (fields.size())
 	{
@@ -120,15 +115,15 @@ void MinecraftWindow::render(wxDC& dc)
 					dc.SetBrush(*wxBLACK_BRUSH);
 				dc.DrawRectangle(sizex * x, sizey * y, sizex, sizey);
 
-				if (x == ai1X && y == ai1Y + 1)
+				if (x == ai1Location.x && y == ai1Location.y + 1)
 				{
 					dc.SetBrush(*wxRED_BRUSH);
-					drawTriangleForDir(dc, ai1Dir, sizex * x, sizey * y, sizex, sizey);
+					drawTriangleForDir(dc, ai1Location.dir, sizex * x, sizey * y, sizex, sizey);
 				}
-				if (x == ai2X && y == ai2Y + 1)
+				if (x == ai2Location.x && y == ai2Location.y + 1)
 				{
 					dc.SetBrush(*wxBLUE_BRUSH);
-					drawTriangleForDir(dc, ai2Dir, sizex * x, sizey * y, sizex, sizey);
+					drawTriangleForDir(dc, ai2Location.dir, sizex * x, sizey * y, sizex, sizey);
 				}
 			}
 		}

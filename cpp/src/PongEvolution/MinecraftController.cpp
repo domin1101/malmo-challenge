@@ -17,6 +17,16 @@ MinecraftController::MinecraftController(AbstractMainApp& mainApp, AbstractTrain
 	window.reset(new MinecraftWindow(*this, parent));
 }
 
+Location MinecraftController::getAi1Location() const
+{
+	return ai1Location;
+}
+
+Location MinecraftController::getAi2Location() const
+{
+	return ai2Location;
+}
+
 void MinecraftController::prepareClose()
 {
 	stopWatchMode();
@@ -58,44 +68,10 @@ void MinecraftController::fieldChanged(Minecraft& minecraft)
 	if (field.size() == 0)
 		field = minecraft.getField();
 
-	ai1X = minecraft.getAgent1().getX();
-	ai1Y = minecraft.getAgent1().getY();
-	ai1Dir = minecraft.getAgent1().getDir();
+	ai1Location = minecraft.getAgent1().getLocation();
 
-	ai2X = minecraft.getAgent2().getX();
-	ai2Y = minecraft.getAgent2().getY();
-	ai2Dir = minecraft.getAgent2().getDir();
+	ai2Location = minecraft.getAgent2().getLocation();
 
 	wxThreadEvent evt(PONG_EVT_FIELD_CHANGED);
 	window->GetEventHandler()->QueueEvent(evt.Clone());
-}
-
-int MinecraftController::getAi1X() const
-{
-	return ai1X;
-}
-
-int MinecraftController::getAi1Y() const
-{
-	return ai1Y;
-}
-
-int MinecraftController::getAi1Dir() const
-{
-	return ai1Dir;
-}
-
-int MinecraftController::getAi2X() const
-{
-	return ai2X;
-}
-
-int MinecraftController::getAi2Y() const
-{
-	return ai2Y;
-}
-
-int MinecraftController::getAi2Dir() const
-{
-	return ai2Dir;
 }

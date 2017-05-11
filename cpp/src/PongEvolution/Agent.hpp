@@ -12,34 +12,30 @@
 // Forward declarations
 class Minecraft;
 
+struct Location
+{
+	int x;
+	int y;
+	int dir;
+};
+
 class Agent : public LightBulb::AbstractDefaultIndividual
 {
 protected:
 	Minecraft* currentGame;
-	int x;
-	int y;
-	int dir;
-	int startX;
-	int startY;
-	int startDir;
+	Location location;
+	Location startLocation; 
 	void getNNInput(std::vector<double>& input) override;
 	void interpretNNOutput(std::vector<double>& output) override;
 public:
 	Agent(LightBulb::FeedForwardNetworkTopologyOptions& options, Minecraft& pong_);
 	Agent() = default;
 	void setEnv(Minecraft& currentGame_);
-	int getX()const;
-	int getY()const;
 
-	void setPositionAndDir(int x_, int y_, int dir_);
-
-	int getStartX() const;
-	int getStartY() const;
-	int getStartDir() const;
-	void setStartX(int startX);
-	void setStartY(int startY);
-	void setStartDir(int startDir);
-	int getDir()const;
+	Location getLocation() const;
+	Location getStartLocation() const;
+	void setLocation(Location location);
+	Location setStartLocation(Location startLocation);
 	void copyPropertiesFrom(AbstractIndividual& notUsedIndividual) override;
 };
 
