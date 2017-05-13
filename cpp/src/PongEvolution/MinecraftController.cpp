@@ -62,6 +62,10 @@ const std::vector<std::vector<int>>& MinecraftController::getField()
 }
 
 
+Location MinecraftController::getPig() const
+{
+	return pig;
+}
 
 void MinecraftController::fieldChanged(Minecraft& minecraft)
 {
@@ -69,8 +73,8 @@ void MinecraftController::fieldChanged(Minecraft& minecraft)
 		field = minecraft.getField();
 
 	ai1Location = minecraft.getAgent1().getLocation();
-
 	ai2Location = minecraft.getAgent2().getLocation();
+	pig = minecraft.getPig();
 
 	wxThreadEvent evt(PONG_EVT_FIELD_CHANGED);
 	window->GetEventHandler()->QueueEvent(evt.Clone());

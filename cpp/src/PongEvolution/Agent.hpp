@@ -24,7 +24,9 @@ class Agent : public LightBulb::AbstractDefaultIndividual
 protected:
 	Minecraft* currentGame;
 	Location location;
-	Location startLocation; 
+	Location popStartLocation;
+	Location parStartLocation;
+	Location pigStartLocation;
 	void getNNInput(std::vector<double>& input) override;
 	void interpretNNOutput(std::vector<double>& output) override;
 public:
@@ -33,9 +35,13 @@ public:
 	void setEnv(Minecraft& currentGame_);
 
 	Location getLocation() const;
-	Location getStartLocation() const;
+	Location getPopStartLocation() const;
+	Location getParStartLocation() const;
 	void setLocation(Location location);
-	Location setStartLocation(Location startLocation);
+	Location getPigStartLocation() const;
+	Location setPigStartLocation(Location pigStartLocation);
+	Location setPopStartLocation(Location popStartLocation);
+	Location setParStartLocation(Location parStartLocation);
 	void copyPropertiesFrom(AbstractIndividual& notUsedIndividual) override;
 };
 

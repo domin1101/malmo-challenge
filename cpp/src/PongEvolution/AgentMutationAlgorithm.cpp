@@ -12,20 +12,46 @@ void AgentMutationAlgorithm::execute(LightBulb::AbstractIndividual& individual1)
 	MutationAlgorithm::execute(individual1);
 	Agent& agent = dynamic_cast<Agent&>(individual1);
 
-	Location startLocation = agent.getLocation();
+	Location popStartLocation = agent.getPopStartLocation();
 
-	startLocation.x += (int)zigguratGenerator->randDouble();
-	startLocation = agent.setStartLocation(startLocation);
+	popStartLocation.x += (int)zigguratGenerator->randDouble();
+	popStartLocation = agent.setPopStartLocation(popStartLocation);
 
-	startLocation.y += (int)zigguratGenerator->randDouble();
-	startLocation = agent.setStartLocation(startLocation);
+	popStartLocation.y += (int)zigguratGenerator->randDouble();
+	popStartLocation = agent.setPopStartLocation(popStartLocation);
 
-	startLocation.dir += (int)zigguratGenerator->randDouble() * 90;
-	if (startLocation.dir < 0)
-		startLocation.dir += 360;
-	startLocation.dir %= 360;
-	startLocation = agent.setStartLocation(startLocation);
+	popStartLocation.dir += (int)zigguratGenerator->randDouble() * 90;
+	if (popStartLocation.dir < 0)
+		popStartLocation.dir += 360;
+	popStartLocation.dir %= 360;
+	popStartLocation = agent.setPopStartLocation(popStartLocation);
+
+
+	Location parStartLocation = agent.getParStartLocation();
+
+	parStartLocation.x += (int)zigguratGenerator->randDouble();
+	parStartLocation = agent.setParStartLocation(parStartLocation);
+
+	parStartLocation.y += (int)zigguratGenerator->randDouble();
+	parStartLocation = agent.setParStartLocation(parStartLocation);
+
+	parStartLocation.dir += (int)zigguratGenerator->randDouble() * 90;
+	if (parStartLocation.dir < 0)
+		parStartLocation.dir += 360;
+	parStartLocation.dir %= 360;
+	parStartLocation = agent.setParStartLocation(parStartLocation);
+
+
+	Location pigStartLocation = agent.getPigStartLocation();
+
+	pigStartLocation.x += (int)zigguratGenerator->randDouble();
+	pigStartLocation = agent.setParStartLocation(pigStartLocation);
+
+	pigStartLocation.y += (int)zigguratGenerator->randDouble();
+	pigStartLocation = agent.setParStartLocation(pigStartLocation);
 }
+
+
 
 LightBulb::AbstractMutationAlgorithm* AgentMutationAlgorithm::clone() const
 {

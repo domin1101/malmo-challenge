@@ -97,6 +97,7 @@ void MinecraftWindow::render(wxDC& dc)
 	auto& fields = getController().getField();
 	Location ai1Location = getController().getAi1Location();
 	Location ai2Location = getController().getAi2Location();
+	Location pig = getController().getPig();
 
 	if (fields.size())
 	{
@@ -115,6 +116,11 @@ void MinecraftWindow::render(wxDC& dc)
 					dc.SetBrush(*wxBLACK_BRUSH);
 				dc.DrawRectangle(sizex * x, sizey * y, sizex, sizey);
 
+				if (x == pig.x && y == pig.y + 1)
+				{
+					dc.SetBrush(wxBrush(wxColor(255, 192, 203)));
+					dc.DrawCircle(sizex * x + sizex / 2, sizey * y + sizey / 2, sizex / 3);
+				}
 				if (x == ai1Location.x && y == ai1Location.y + 1)
 				{
 					dc.SetBrush(*wxRED_BRUSH);

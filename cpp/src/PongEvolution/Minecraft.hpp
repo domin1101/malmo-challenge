@@ -13,6 +13,7 @@
 #include "LightBulb/Learning/Evolution/AbstractCoevolutionEnvironment.hpp"
 #include "LightBulb/IO/UseParentSerialization.hpp"
 #include "LightBulb/NetworkTopology/FeedForwardNetworkTopology.hpp"
+#include "Agent.hpp"
 
 // Forward declarations
 class Agent;
@@ -40,6 +41,7 @@ private:
 	int totalReward;
 	int matchCount;
 	bool isInteresting;
+	Location pig;
 	LightBulb::AbstractIndividual* lastBestIndividual;
 protected:
 	LightBulb::AbstractIndividual* createNewIndividual() override;
@@ -53,12 +55,14 @@ public:
 	void getNNInput(std::vector<double>& sight);
 	int getRoundCount() const override;
 
+	bool isFieldBlockedForPig(int x, int y);
 	void startNewGame(Agent &ai1, Agent &ai2);
 	void getNNInputFull(std::vector<double>& input);
 
 	int getReward(Agent &agent);
 
 	bool isDone(Agent &ai1, Agent &ai2, int currentPlayer, int startPlayer);
+	bool isPigCaught();
 
 	bool isFieldAllowed(int i, int i1);
 
@@ -71,6 +75,7 @@ public:
 	const std::vector<std::vector<int>>& getField();
 	const Agent& getAgent1();
 	const Agent& getAgent2();
+	const Location& getPig();
 
 	std::vector<std::string> getDataSetLabels() const;
 

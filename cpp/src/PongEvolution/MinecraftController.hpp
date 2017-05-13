@@ -18,6 +18,7 @@ private:
 	std::vector<std::vector<int>> field;
 	Location ai1Location;
 	Location ai2Location;
+	Location pig;
 protected:
 	void prepareClose() override;
 public:
@@ -30,6 +31,7 @@ public:
 	void fieldChanged(Minecraft& pong);
 	Location getAi1Location() const;
 	Location getAi2Location() const;
+	Location getPig() const;
 };
 
 #endif

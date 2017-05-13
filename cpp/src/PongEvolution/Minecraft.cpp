@@ -33,26 +33,12 @@ Minecraft::Minecraft(FeedForwardNetworkTopologyOptions& options_, bool isParasit
 {
 	options.reset(new FeedForwardNetworkTopologyOptions(options_));
 	fields.resize(FIELD_SIZE, std::vector<int>(FIELD_SIZE, 0));
-	fields[0][0] = 1;
-	fields[1][0] = 1;
-	fields[2][0] = 1;
-	fields[3][0] = 1;
-	fields[4][0] = 1;
-	fields[5][0] = 1;
-	fields[6][0] = 1;
-	fields[7][0] = 1;
-	fields[8][0] = 1;
-
-	fields[0][1] = 1;
-	fields[8][1] = 1;
-
-	fields[0][2] = 1;
+	
 	fields[2][2] = 1;
 	fields[3][2] = 1;
 	fields[4][2] = 1;
 	fields[5][2] = 1;
 	fields[6][2] = 1;
-	fields[8][2] = 1;
 
 	fields[2][3] = 1;
 	fields[4][3] = 1;
@@ -70,26 +56,11 @@ Minecraft::Minecraft(FeedForwardNetworkTopologyOptions& options_, bool isParasit
 	fields[4][5] = 1;
 	fields[6][5] = 1;
 
-	fields[0][6] = 1;
 	fields[2][6] = 1;
 	fields[3][6] = 1;
 	fields[4][6] = 1;
 	fields[5][6] = 1;
 	fields[6][6] = 1;
-	fields[8][6] = 1;
-
-	fields[0][7] = 1;
-	fields[8][7] = 1;
-
-	fields[0][8] = 1;
-	fields[1][8] = 1;
-	fields[2][8] = 1;
-	fields[3][8] = 1;
-	fields[4][8] = 1;
-	fields[5][8] = 1;
-	fields[6][8] = 1;
-	fields[7][8] = 1;
-	fields[8][8] = 1;
 
 	grayPalette[0] = 255; // Sand
 	grayPalette[1] = 200; // Grass
@@ -160,6 +131,9 @@ int Minecraft::simulateGame(Agent& ai1, Agent& ai2, int startPlayer)
 			break;
 	}
 
+	if (isPigCaught())
+		rewards[currentPlayer] += 25;
+
 	bestReward = std::max(bestReward, rewards[0]);
 	totalReward += rewards[0];
 	matchCount++;
@@ -188,23 +162,39 @@ int Minecraft::rateIndividual(AbstractIndividual& individual)
 
 bool Minecraft::isDone(Agent& ai1, Agent& ai2, int currentPlayer, int startPlayer)
 {
-	return currentPlayer == startPlayer && (fields[ai1.getLocation().x][ai1.getLocation().y + 1] == 2 || fields[ai2.getLocation().x][ai2.getLocation().y + 1] == 2);
+	return isPigCaught() || (currentPlayer == startPlayer && (fields[ai1.getLocation().x][ai1.getLocation().y + 1] == 2 || fields[ai2.getLocation().x][ai2.getLocation().y + 1] == 2));
+}
+
+bool Minecraft::isPigCaught()
+{
+	return false && isFieldBlockedForPig(pig.x, pig.y + 2) && isFieldBlockedForPig(pig.x, pig.y) && isFieldBlockedForPig(pig.x - 1, pig.y + 1) && isFieldBlockedForPig(pig.x + 1, pig.y + 1);
+}
+
+bool Minecraft::isFieldBlockedForPig(int x, int y)
+{
+	return !isFieldAllowed(x, y) || (currentAi1->getLocation().x == x && currentAi1->getLocation().y + 1 == y) || (currentAi2->getLocation().x == x && currentAi2->getLocation().y + 1 == y);
 }
 
 void Minecraft::startNewGame(Agent& ai1, Agent& ai2)
 {
-	Location startLocation;
+	Location popStartLocation, parStartLocation;
 	if (isParasiteEnvironment())
 	{
-		startLocation = ai1.getStartLocation();
+		parStartLocation = ai1.getParStartLocation();
+		popStartLocation = ai1.getPopStartLocation();
+		pig = ai1.getPigStartLocation();
 	}
 	else
 	{
-		startLocation = ai2.getStartLocation();
+		parStartLocation = ai2.getParStartLocation();
+		popStartLocation = ai2.getPopStartLocation();
+		pig = ai2.getPigStartLocation();
 	}
 
-	ai1.setLocation(startLocation);
-	ai2.setLocation(startLocation);
+	parStartLocation = popStartLocation;
+
+	ai1.setLocation(isParasiteEnvironment() ? parStartLocation : popStartLocation);
+	ai2.setLocation(isParasiteEnvironment() ? popStartLocation : parStartLocation);
 
 	isInteresting = (isParasiteEnvironment() && ai1.getLocation().dir == 0 && ai2.getLocation().dir == 90);
 	/*
@@ -333,7 +323,7 @@ void Minecraft::setBlock(std::vector<double>& input, int x, int y, int dir, int 
 
 int Minecraft::getReward(Agent &agent)
 {
-	return -1 + (fields[agent.getLocation().x][agent.getLocation().y + 1] == 2 ? 5 : 0);
+	return -1 + (fields[agent.getLocation().x][agent.getLocation().y + 1] == 2 ? 5 : 0) + (isPigCaught() ? 25 : 0);
 }
 
 bool Minecraft::isFieldAllowed(int x, int y)
@@ -364,4 +354,9 @@ const Agent &Minecraft::getAgent1()
 const Agent &Minecraft::getAgent2()
 {
 	return *currentAi2;
+}
+
+const Location& Minecraft::getPig()
+{
+	return pig;
 }

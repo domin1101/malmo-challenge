@@ -12,11 +12,23 @@ Agent::Agent(FeedForwardNetworkTopologyOptions& options, Minecraft& pong_)
 
 	do
 	{
-		startLocation.x = currentGame->getRandomGenerator().randInt(2, 6);
-		startLocation.y = currentGame->getRandomGenerator().randInt(1, 5);
-	} while (!currentGame->isFieldAllowed(startLocation.x, startLocation.y + 1));
+		popStartLocation.x = currentGame->getRandomGenerator().randInt(2, 6);
+		popStartLocation.y = currentGame->getRandomGenerator().randInt(1, 5);
+	} while (!currentGame->isFieldAllowed(popStartLocation.x, popStartLocation.y + 1));
+	popStartLocation.dir = currentGame->getRandomGenerator().randInt(0, 3) * 90;
 
-	startLocation.dir = currentGame->getRandomGenerator().randInt(0, 3) * 90;
+	do
+	{
+		parStartLocation.x = currentGame->getRandomGenerator().randInt(2, 6);
+		parStartLocation.y = currentGame->getRandomGenerator().randInt(1, 5);
+	} while (!currentGame->isFieldAllowed(parStartLocation.x, parStartLocation.y + 1));
+	parStartLocation.dir = currentGame->getRandomGenerator().randInt(0, 3) * 90;
+
+	do
+	{
+		pigStartLocation.x = currentGame->getRandomGenerator().randInt(2, 6);
+		pigStartLocation.y = currentGame->getRandomGenerator().randInt(1, 5);
+	} while (!currentGame->isFieldAllowed(pigStartLocation.x, pigStartLocation.y + 1));
 }
 
 
@@ -99,9 +111,14 @@ Location Agent::getLocation() const
 	return location;
 }
 
-Location Agent::getStartLocation() const
+Location Agent::getParStartLocation() const
 {
-	return startLocation;
+	return parStartLocation;
+}
+
+Location Agent::getPopStartLocation() const
+{
+	return popStartLocation;
 }
 
 void Agent::setLocation(Location location)
@@ -109,16 +126,36 @@ void Agent::setLocation(Location location)
 	this->location = location;
 }
 
-Location Agent::setStartLocation(Location startLocation)
+Location Agent::getPigStartLocation() const
 {
-	if (currentGame->isFieldAllowed(startLocation.x, startLocation.y + 1))
-		this->startLocation = startLocation;
-	return this->startLocation;
+	return pigStartLocation;
+}
+
+Location Agent::setPigStartLocation(Location pigStartLocation)
+{
+	if (currentGame->isFieldAllowed(pigStartLocation.x, pigStartLocation.y + 1))
+		this->pigStartLocation = pigStartLocation;
+	return this->pigStartLocation;
+}
+
+Location Agent::setPopStartLocation(Location popStartLocation)
+{
+	if (currentGame->isFieldAllowed(popStartLocation.x, popStartLocation.y + 1))
+		this->popStartLocation = popStartLocation;
+	return this->popStartLocation;
+}
+
+Location Agent::setParStartLocation(Location parStartLocation)
+{
+	if (currentGame->isFieldAllowed(parStartLocation.x, parStartLocation.y + 1))
+		this->parStartLocation = parStartLocation;
+	return this->parStartLocation;
 }
 
 void Agent::copyPropertiesFrom(AbstractIndividual& notUsedIndividual)
 {
 	AbstractDefaultIndividual::copyPropertiesFrom(notUsedIndividual);
 	Agent& agent = dynamic_cast<Agent&>(notUsedIndividual);
-	startLocation = agent.startLocation;
+	parStartLocation = agent.parStartLocation;
+	popStartLocation = agent.popStartLocation;
 }
