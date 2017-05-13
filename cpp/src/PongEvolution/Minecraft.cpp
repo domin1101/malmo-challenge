@@ -138,6 +138,11 @@ int Minecraft::simulateGame(Agent& ai1, Agent& ai2, int startPlayer)
 	totalReward += rewards[0];
 	matchCount++;
 
+	if (parasiteEnvironment)
+		return rewards[1];
+	else
+		return rewards[0];
+
 	if (rewards[0] == rewards[1]) {
 		if (parasiteEnvironment)
 			return -1;
@@ -191,7 +196,7 @@ void Minecraft::startNewGame(Agent& ai1, Agent& ai2)
 		pig = ai2.getPigStartLocation();
 	}
 
-	parStartLocation = popStartLocation;
+	//parStartLocation = popStartLocation;
 
 	ai1.setLocation(isParasiteEnvironment() ? parStartLocation : popStartLocation);
 	ai2.setLocation(isParasiteEnvironment() ? popStartLocation : parStartLocation);

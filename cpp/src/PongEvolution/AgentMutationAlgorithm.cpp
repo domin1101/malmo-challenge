@@ -45,10 +45,10 @@ void AgentMutationAlgorithm::execute(LightBulb::AbstractIndividual& individual1)
 	Location pigStartLocation = agent.getPigStartLocation();
 
 	pigStartLocation.x += (int)zigguratGenerator->randDouble();
-	pigStartLocation = agent.setParStartLocation(pigStartLocation);
+	pigStartLocation = agent.setPigStartLocation(pigStartLocation);
 
 	pigStartLocation.y += (int)zigguratGenerator->randDouble();
-	pigStartLocation = agent.setParStartLocation(pigStartLocation);
+	pigStartLocation = agent.setPigStartLocation(pigStartLocation);
 }
 
 

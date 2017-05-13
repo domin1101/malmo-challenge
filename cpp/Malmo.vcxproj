@@ -114,6 +114,7 @@
     <ClCompile Include="src\pongevolution\MinecraftController.cpp" />
     <ClCompile Include="src\pongevolution\MinecraftFactory.cpp" />
     <ClCompile Include="src\pongevolution\MinecraftWindow.cpp" />
+    <ClCompile Include="src\PongEvolution\MalmoCombiningStrategy.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\BackpropagationXor\BackpropagationXorExample.hpp" />
@@ -124,6 +125,7 @@
     <ClInclude Include="src\pongevolution\MinecraftController.hpp" />
     <ClInclude Include="src\pongevolution\MinecraftFactory.hpp" />
     <ClInclude Include="src\pongevolution\MinecraftWindow.hpp" />
+    <ClInclude Include="src\PongEvolution\MalmoCombiningStrategy.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

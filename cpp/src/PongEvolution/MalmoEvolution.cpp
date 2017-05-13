@@ -30,6 +30,7 @@
 #include <LightBulb/Learning/Evolution/RandomHallOfFameAlgorithm.hpp>
 #include <LightBulb/Learning/Evolution/WeightDecayFitnessFunction.hpp>
 #include "AgentMutationAlgorithm.hpp"
+#include "MalmoCombiningStrategy.hpp"
 
 #define PREFERENCE_POPULATION_SIZE "Population size"
 #define PREFERENCE_MUTATION_PERCENTAGE "Mutation percentage"
@@ -104,7 +105,7 @@ FeedForwardNetworkTopologyOptions MalmoEvolution::getNetworkOptions()
 
 AbstractEvolutionEnvironment* MalmoEvolution::createEnvironment()
 {
-	cs1 = new SharedSamplingCombiningStrategy(getIntegerPreference(PREFERENCE_COMPETITIONS_SIZE));
+	cs1 = new MalmoCombiningStrategy(getIntegerPreference(PREFERENCE_COMPETITIONS_SIZE));
 
 	FeedForwardNetworkTopologyOptions options = getNetworkOptions();
 	Minecraft* pong1 = new Minecraft(options, false, cs1, new SharedCoevolutionFitnessFunction(), &hof1, &hof2);
@@ -118,7 +119,7 @@ AbstractEvolutionEnvironment* MalmoEvolution::createEnvironment()
 
 AbstractEvolutionEnvironment* MalmoEvolution::createParasiteEnvironment()
 {
-	cs2 = new SharedSamplingCombiningStrategy(getIntegerPreference(PREFERENCE_COMPETITIONS_SIZE));
+	cs2 = new MalmoCombiningStrategy(getIntegerPreference(PREFERENCE_COMPETITIONS_SIZE));
 
 	hof1.reset(new RandomHallOfFameAlgorithm(getIntegerPreference(PREFERENCE_HALLOFFAME_COMPETITIONS_SIZE)));
 	hof2.reset(new RandomHallOfFameAlgorithm(getIntegerPreference(PREFERENCE_HALLOFFAME_COMPETITIONS_SIZE)));
@@ -133,13 +134,13 @@ MalmoEvolution::MalmoEvolution()
 	addPreference(new DoublePreference(PREFERENCE_MUTATION_PERCENTAGE, 1.8, 0, 3));
 	addPreference(new DoublePreference(PREFERENCE_RECOMBINATION_PERCENTAGE, 0.3, 0, 3));
 	addPreference(new DoublePreference(PREFERENCE_TOPOLOGY_MUTATION_PERCENTAGE, 0, 0, 3));
-	addPreference(new IntegerPreference(PREFERENCE_POPULATION_SIZE, 15, 1, 1000));
-	addPreference(new IntegerPreference(PREFERENCE_CREATE_UP_TO, 25, 1, 1000));
-	addPreference(new IntegerPreference(PREFERENCE_COMPETITIONS_SIZE, 10, 1, 1000));
+	addPreference(new IntegerPreference(PREFERENCE_POPULATION_SIZE, 150, 1, 1000));
+	addPreference(new IntegerPreference(PREFERENCE_CREATE_UP_TO, 250, 1, 1000));
+	addPreference(new IntegerPreference(PREFERENCE_COMPETITIONS_SIZE, 25, 1, 1000));
 	addPreference(new IntegerPreference(PREFERENCE_HALLOFFAME_COMPETITIONS_SIZE, 0, 1, 1000));
 	addPreference(new BooleanPreference(PREFERENCE_SHORTCUT_ENABLE, false));
-	addPreference(new IntegerPreference(PREFERENCE_NEURON_COUNT_FIRST_LAYER, 64, 1, 30));
-	addPreference(new BooleanPreference(PREFERENCE_SECOND_LAYER_ENABLE, true));
+	addPreference(new IntegerPreference(PREFERENCE_NEURON_COUNT_FIRST_LAYER, 32, 1, 30));
+	addPreference(new BooleanPreference(PREFERENCE_SECOND_LAYER_ENABLE, false));
 	addPreference(new IntegerPreference(PREFERENCE_NEURON_COUNT_SECOND_LAYER, 32, 1, 30));
 	addPreference(new DoublePreference(PREFERENCE_MUTATIONSTRENGTH_CHANGESPEED, 1.6, 0, 2)); // 1.6, simple
 	addPreference(new DoublePreference(PREFERENCE_WEIGHTDECAY_FAC, 0, 0.003, 0.3));
