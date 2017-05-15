@@ -17,6 +17,13 @@ struct Location
 	int x;
 	int y;
 	int dir;
+
+	friend bool operator==(const Location& lhs, const Location& rhs)
+	{
+		return lhs.x == rhs.x
+			&& lhs.y == rhs.y
+			&& lhs.dir == rhs.dir;
+	}
 };
 
 class Agent : public LightBulb::AbstractDefaultIndividual
@@ -34,9 +41,9 @@ public:
 	Agent() = default;
 	void setEnv(Minecraft& currentGame_);
 
-	Location getLocation() const;
-	Location getPopStartLocation() const;
-	Location getParStartLocation() const;
+	const Location& getLocation() const;
+	const Location& getPopStartLocation() const;
+	const Location& getParStartLocation() const;
 	void setLocation(Location location);
 	Location getPigStartLocation() const;
 	Location setPigStartLocation(Location pigStartLocation);

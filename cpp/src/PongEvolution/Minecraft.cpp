@@ -111,13 +111,35 @@ int Minecraft::simulateGame(Agent& ai1, Agent& ai2, int startPlayer)
 		startPlayer = 1 - startPlayer;
 	currentPlayer = startPlayer;
 	std::vector<int> rewards = {0, 0};
+	int noPosDirChangesInRow = 0;
+	int noPosChangesInRow = 0;
 
 	for (int t = 0; t < 50; t++)
 	{
 		Agent& currentAgent = currentPlayer == 0 ? ai1 : ai2;
 
+		Location prevLocation = currentAgent.getLocation();
 		currentAgent.doNNCalculation();
 		rewards[currentPlayer] += getReward(currentAgent);
+
+		if (prevLocation.x == currentAgent.getLocation().x && prevLocation.y == currentAgent.getLocation().y)
+		{
+			if (prevLocation.dir == currentAgent.getLocation().dir)
+				noPosDirChangesInRow++;
+			else
+				noPosDirChangesInRow = 0;
+			noPosChangesInRow++;
+			if (noPosDirChangesInRow >= 2 || noPosChangesInRow >= 8)
+			{
+				rewards = { -25, -25 };
+				break;
+			}
+		}
+		else
+		{
+			noPosDirChangesInRow = 0;
+			noPosChangesInRow = 0;
+		}
 
 		currentPlayer = 1 - currentPlayer;
 
@@ -269,17 +291,20 @@ void Minecraft::setInputForAgent(std::vector<double>& input, int x, int y, int d
 
 void Minecraft::getNNInput(std::vector<double>& input)
 {
-	input.resize(16, 0);
+	bool isParasite = currentPlayer == 0 && isParasiteEnvironment() || currentPlayer == 1 && !isParasiteEnvironment();
+	input.resize(isParasite ? 8 : 16, 0);
 
 	if (currentPlayer == 0)
 	{
 		setInputForAgent(input, currentAi1->getLocation().x, currentAi1->getLocation().y + 1, currentAi1->getLocation().dir, 0);
-		setInputForAgent(input, currentAi2->getLocation().x, currentAi2->getLocation().y + 1, currentAi2->getLocation().dir, 8);
+		if (!isParasite)
+			setInputForAgent(input, currentAi2->getLocation().x, currentAi2->getLocation().y + 1, currentAi2->getLocation().dir, 8);
 	}
 	else
 	{
 		setInputForAgent(input, currentAi2->getLocation().x, currentAi2->getLocation().y + 1, currentAi2->getLocation().dir, 0);
-		setInputForAgent(input, currentAi1->getLocation().x, currentAi1->getLocation().y + 1, currentAi1->getLocation().dir, 8);
+		if (!isParasite)
+			setInputForAgent(input, currentAi1->getLocation().x, currentAi1->getLocation().y + 1, currentAi1->getLocation().dir, 8);
 	}
 }
 

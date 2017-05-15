@@ -106,17 +106,17 @@ void Agent::setEnv(Minecraft &currentGame_)
 	currentGame = &currentGame_;
 }
 
-Location Agent::getLocation() const
+const Location& Agent::getLocation() const
 {
 	return location;
 }
 
-Location Agent::getParStartLocation() const
+const Location& Agent::getParStartLocation() const
 {
 	return parStartLocation;
 }
 
-Location Agent::getPopStartLocation() const
+const Location& Agent::getPopStartLocation() const
 {
 	return popStartLocation;
 }

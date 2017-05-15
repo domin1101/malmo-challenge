@@ -19,7 +19,7 @@ private:
 	LightBulb::SharedSamplingCombiningStrategy* cs2;
 protected:
 	LightBulb::AbstractLearningRule* createLearningRate() override;
-	LightBulb::FeedForwardNetworkTopologyOptions getNetworkOptions();
+	LightBulb::FeedForwardNetworkTopologyOptions getNetworkOptions(int inputSize);
 	LightBulb::AbstractEvolutionEnvironment* createEnvironment() override;
 	LightBulb::AbstractEvolutionEnvironment* createParasiteEnvironment() override;
 public:
