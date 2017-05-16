@@ -74,5 +74,8 @@
     <ClInclude Include="src\PongEvolution\MalmoCombiningStrategy.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\PongEvolution\AgentIO.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

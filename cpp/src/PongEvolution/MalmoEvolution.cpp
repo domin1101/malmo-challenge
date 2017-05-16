@@ -107,7 +107,7 @@ AbstractEvolutionEnvironment* MalmoEvolution::createEnvironment()
 {
 	cs1 = new MalmoCombiningStrategy(getIntegerPreference(PREFERENCE_COMPETITIONS_SIZE));
 
-	FeedForwardNetworkTopologyOptions options = getNetworkOptions(16);
+	FeedForwardNetworkTopologyOptions options = getNetworkOptions(24);
 	Minecraft* pong1 = new Minecraft(options, false, cs1, new SharedCoevolutionFitnessFunction(), &hof1, &hof2);
 
 	cs1->setSecondEnvironment(static_cast<Minecraft&>(*parasiteEnvironment.get()));
@@ -124,7 +124,7 @@ AbstractEvolutionEnvironment* MalmoEvolution::createParasiteEnvironment()
 	hof1.reset(new RandomHallOfFameAlgorithm(getIntegerPreference(PREFERENCE_HALLOFFAME_COMPETITIONS_SIZE)));
 	hof2.reset(new RandomHallOfFameAlgorithm(getIntegerPreference(PREFERENCE_HALLOFFAME_COMPETITIONS_SIZE)));
 
-	FeedForwardNetworkTopologyOptions options = getNetworkOptions(8);
+	FeedForwardNetworkTopologyOptions options = getNetworkOptions(16);
 	return new Minecraft(options, true, cs2, new SharedCoevolutionFitnessFunction(), &hof2, &hof1);
 }
 

@@ -119,6 +119,7 @@
   <ItemGroup>
     <ClInclude Include="src\BackpropagationXor\BackpropagationXorExample.hpp" />
     <ClInclude Include="src\pongevolution\Agent.hpp" />
+    <ClInclude Include="src\PongEvolution\AgentIO.hpp" />
     <ClInclude Include="src\PongEvolution\AgentMutationAlgorithm.hpp" />
     <ClInclude Include="src\pongevolution\MalmoEvolution.hpp" />
     <ClInclude Include="src\pongevolution\Minecraft.hpp" />

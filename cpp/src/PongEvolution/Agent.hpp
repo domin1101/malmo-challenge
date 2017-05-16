@@ -28,6 +28,10 @@ struct Location
 
 class Agent : public LightBulb::AbstractDefaultIndividual
 {
+	template <class Archive>
+	friend void save(Archive& archive, Agent const& agent);
+	template <class Archive>
+	friend void load(Archive& archive, Agent& agent);
 protected:
 	Minecraft* currentGame;
 	Location location;
@@ -38,6 +42,9 @@ protected:
 	void interpretNNOutput(std::vector<double>& output) override;
 public:
 	Agent(LightBulb::FeedForwardNetworkTopologyOptions& options, Minecraft& pong_);
+	bool isValidStartConstelation(const Location& popStartLocation, const Location& parStartLocation, const Location& pigStartLocation);
+	float calcDistance(const Location& location1, const Location& location2);
+	void setToRandomLocation(Location& location);
 	Agent() = default;
 	void setEnv(Minecraft& currentGame_);
 
@@ -46,12 +53,12 @@ public:
 	const Location& getParStartLocation() const;
 	void setLocation(Location location);
 	Location getPigStartLocation() const;
-	Location setPigStartLocation(Location pigStartLocation);
-	Location setPopStartLocation(Location popStartLocation);
-	Location setParStartLocation(Location parStartLocation);
+	void setPigStartLocation(Location pigStartLocation);
+	void setPopStartLocation(Location popStartLocation);
+	void setParStartLocation(Location parStartLocation);
 	void copyPropertiesFrom(AbstractIndividual& notUsedIndividual) override;
 };
 
-// USE_PARENT_SERIALIZATION_WITHOUT_NAMESPACE(PongAI, LightBulb::AbstractDefaultIndividual);
+#include "AgentIO.hpp"
 
 #endif

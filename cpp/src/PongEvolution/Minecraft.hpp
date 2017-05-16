@@ -64,7 +64,7 @@ public:
 	bool isDone(Agent &ai1, Agent &ai2, int currentPlayer, int startPlayer);
 	bool isPigCaught();
 
-	bool isFieldAllowed(int i, int i1);
+	bool isFieldAllowed(int x, int y, bool allowLapis = true);
 
 	void setBlock(std::vector<double> &input, int x, int y, int dir, int value);
 
@@ -82,6 +82,6 @@ public:
 	int rateIndividual(LightBulb::AbstractIndividual &individual);
 };
 
-// USE_EXISTING_PARENT_SERIALIZATION_WITHOUT_NAMESPACE(Pong, LightBulb::AbstractCoevolutionEnvironment, LightBulb::AbstractEvolutionEnvironment);
+USE_EXISTING_PARENT_SERIALIZATION_WITHOUT_NAMESPACE(Minecraft, LightBulb::AbstractCoevolutionEnvironment, LightBulb::AbstractEvolutionEnvironment);
 
 #endif

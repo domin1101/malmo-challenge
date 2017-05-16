@@ -189,12 +189,12 @@ int Minecraft::rateIndividual(AbstractIndividual& individual)
 
 bool Minecraft::isDone(Agent& ai1, Agent& ai2, int currentPlayer, int startPlayer)
 {
-	return isPigCaught() || (currentPlayer == startPlayer && (fields[ai1.getLocation().x][ai1.getLocation().y + 1] == 2 || fields[ai2.getLocation().x][ai2.getLocation().y + 1] == 2));
+	return isPigCaught();// || (currentPlayer == startPlayer && (fields[ai1.getLocation().x][ai1.getLocation().y + 1] == 2 || fields[ai2.getLocation().x][ai2.getLocation().y + 1] == 2));
 }
 
 bool Minecraft::isPigCaught()
 {
-	return false && isFieldBlockedForPig(pig.x, pig.y + 2) && isFieldBlockedForPig(pig.x, pig.y) && isFieldBlockedForPig(pig.x - 1, pig.y + 1) && isFieldBlockedForPig(pig.x + 1, pig.y + 1);
+	return isFieldBlockedForPig(pig.x, pig.y + 2) && isFieldBlockedForPig(pig.x, pig.y) && isFieldBlockedForPig(pig.x - 1, pig.y + 1) && isFieldBlockedForPig(pig.x + 1, pig.y + 1);
 }
 
 bool Minecraft::isFieldBlockedForPig(int x, int y)
@@ -217,6 +217,9 @@ void Minecraft::startNewGame(Agent& ai1, Agent& ai2)
 		popStartLocation = ai2.getPopStartLocation();
 		pig = ai2.getPigStartLocation();
 	}
+
+	pig.x = 2;
+	pig.y = 1;
 
 	//parStartLocation = popStartLocation;
 
@@ -292,19 +295,22 @@ void Minecraft::setInputForAgent(std::vector<double>& input, int x, int y, int d
 void Minecraft::getNNInput(std::vector<double>& input)
 {
 	bool isParasite = currentPlayer == 0 && isParasiteEnvironment() || currentPlayer == 1 && !isParasiteEnvironment();
-	input.resize(isParasite ? 8 : 16, 0);
+	input.resize(isParasite ? 16 : 24, 0);
 
 	if (currentPlayer == 0)
 	{
-		setInputForAgent(input, currentAi1->getLocation().x, currentAi1->getLocation().y + 1, currentAi1->getLocation().dir, 0);
+		setInputForAgent(input, pig.x, pig.y + 1, 0, 0);
+		setInputForAgent(input, currentAi1->getLocation().x, currentAi1->getLocation().y + 1, currentAi1->getLocation().dir, 8);
 		if (!isParasite)
-			setInputForAgent(input, currentAi2->getLocation().x, currentAi2->getLocation().y + 1, currentAi2->getLocation().dir, 8);
+			setInputForAgent(input, currentAi2->getLocation().x, currentAi2->getLocation().y + 1, currentAi2->getLocation().dir, 16);
+			
 	}
 	else
 	{
-		setInputForAgent(input, currentAi2->getLocation().x, currentAi2->getLocation().y + 1, currentAi2->getLocation().dir, 0);
+		setInputForAgent(input, pig.x, pig.y + 1, 0, 0);
+		setInputForAgent(input, currentAi2->getLocation().x, currentAi2->getLocation().y + 1, currentAi2->getLocation().dir, 8);
 		if (!isParasite)
-			setInputForAgent(input, currentAi1->getLocation().x, currentAi1->getLocation().y + 1, currentAi1->getLocation().dir, 8);
+			setInputForAgent(input, currentAi1->getLocation().x, currentAi1->getLocation().y + 1, currentAi1->getLocation().dir, 16);
 	}
 }
 
@@ -353,12 +359,12 @@ void Minecraft::setBlock(std::vector<double>& input, int x, int y, int dir, int 
 
 int Minecraft::getReward(Agent &agent)
 {
-	return -1 + (fields[agent.getLocation().x][agent.getLocation().y + 1] == 2 ? 5 : 0) + (isPigCaught() ? 25 : 0);
+	return -1 + (isPigCaught() ? 25 : 0);// +(fields[agent.getLocation().x][agent.getLocation().y + 1] == 2 ? 5 : 0);
 }
 
-bool Minecraft::isFieldAllowed(int x, int y)
+bool Minecraft::isFieldAllowed(int x, int y, bool allowLapis)
 {
-	return x >= 0 && y >= 0 && x < FIELD_SIZE && y < FIELD_SIZE && fields[x][y] != 0;
+	return x >= 0 && y >= 0 && x < FIELD_SIZE && y < FIELD_SIZE && fields[x][y] != 0 && (allowLapis || fields[x][y] != 2);
 }
 
 void Minecraft::startWatchMode()

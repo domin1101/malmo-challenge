@@ -30,6 +30,6 @@ public:
 	std::string getLearningRuleName() const override;
 };
 
-// USE_PARENT_SERIALIZATION_WITHOUT_NAMESPACE(PongEvolutionExample, LightBulb::AbstractCoevolutionTrainingPlan);
+USE_PARENT_SERIALIZATION_WITHOUT_NAMESPACE(MalmoEvolution, LightBulb::AbstractCoevolutionTrainingPlan);
 
 #endif

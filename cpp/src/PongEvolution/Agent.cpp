@@ -12,23 +12,33 @@ Agent::Agent(FeedForwardNetworkTopologyOptions& options, Minecraft& pong_)
 
 	do
 	{
-		popStartLocation.x = currentGame->getRandomGenerator().randInt(2, 6);
-		popStartLocation.y = currentGame->getRandomGenerator().randInt(1, 5);
-	} while (!currentGame->isFieldAllowed(popStartLocation.x, popStartLocation.y + 1));
+		setToRandomLocation(popStartLocation);
+		setToRandomLocation(parStartLocation);
+		setToRandomLocation(pigStartLocation);
+	} while (!isValidStartConstelation(popStartLocation, parStartLocation, pigStartLocation));
+
 	popStartLocation.dir = currentGame->getRandomGenerator().randInt(0, 3) * 90;
-
-	do
-	{
-		parStartLocation.x = currentGame->getRandomGenerator().randInt(2, 6);
-		parStartLocation.y = currentGame->getRandomGenerator().randInt(1, 5);
-	} while (!currentGame->isFieldAllowed(parStartLocation.x, parStartLocation.y + 1));
 	parStartLocation.dir = currentGame->getRandomGenerator().randInt(0, 3) * 90;
+}
 
+bool Agent::isValidStartConstelation(const Location& popStartLocation, const Location& parStartLocation, const Location& pigStartLocation)
+{
+	return currentGame && currentGame->isFieldAllowed(popStartLocation.x, popStartLocation.y + 1, false) && currentGame->isFieldAllowed(parStartLocation.x, parStartLocation.y + 1, false) && currentGame->isFieldAllowed(pigStartLocation.x, pigStartLocation.y + 1, false) &&
+		calcDistance(popStartLocation, parStartLocation) > 1.1f && calcDistance(parStartLocation, pigStartLocation) > 1.1f && calcDistance(popStartLocation, pigStartLocation) > 1.1f;
+}
+
+float Agent::calcDistance(const Location& location1, const Location& location2)
+{
+	return sqrt(pow((float)location1.x - (float)location2.x, 2) + pow((float)location1.y - (float)location2.y, 2));
+}
+
+void Agent::setToRandomLocation(Location& location)
+{
 	do
 	{
-		pigStartLocation.x = currentGame->getRandomGenerator().randInt(2, 6);
-		pigStartLocation.y = currentGame->getRandomGenerator().randInt(1, 5);
-	} while (!currentGame->isFieldAllowed(pigStartLocation.x, pigStartLocation.y + 1));
+		location.x = currentGame->getRandomGenerator().randInt(2, 6);
+		location.y = currentGame->getRandomGenerator().randInt(1, 5);
+	} while (!currentGame->isFieldAllowed(location.x, location.y + 1, false));
 }
 
 
@@ -131,25 +141,19 @@ Location Agent::getPigStartLocation() const
 	return pigStartLocation;
 }
 
-Location Agent::setPigStartLocation(Location pigStartLocation)
+void Agent::setPigStartLocation(Location pigStartLocation)
 {
-	if (currentGame->isFieldAllowed(pigStartLocation.x, pigStartLocation.y + 1))
-		this->pigStartLocation = pigStartLocation;
-	return this->pigStartLocation;
+	this->pigStartLocation = pigStartLocation;
 }
 
-Location Agent::setPopStartLocation(Location popStartLocation)
+void Agent::setPopStartLocation(Location popStartLocation)
 {
-	if (currentGame->isFieldAllowed(popStartLocation.x, popStartLocation.y + 1))
-		this->popStartLocation = popStartLocation;
-	return this->popStartLocation;
+	this->popStartLocation = popStartLocation;
 }
 
-Location Agent::setParStartLocation(Location parStartLocation)
+void Agent::setParStartLocation(Location parStartLocation)
 {
-	if (currentGame->isFieldAllowed(parStartLocation.x, parStartLocation.y + 1))
-		this->parStartLocation = parStartLocation;
-	return this->parStartLocation;
+	this->parStartLocation = parStartLocation;
 }
 
 void Agent::copyPropertiesFrom(AbstractIndividual& notUsedIndividual)
