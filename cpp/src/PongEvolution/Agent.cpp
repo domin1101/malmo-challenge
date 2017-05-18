@@ -8,7 +8,11 @@ Agent::Agent(FeedForwardNetworkTopologyOptions& options, Minecraft& pong_)
 	: AbstractDefaultIndividual(pong_)
 {
 	currentGame = &pong_;
+	//if (!static_cast<AbstractCoevolutionEnvironment*>(environment)->isParasiteEnvironment())
+	//	options.neuronsPerLayerCount = { 1, 1 };
+
 	buildNeuralNetwork(options);
+	
 
 	do
 	{
@@ -19,6 +23,8 @@ Agent::Agent(FeedForwardNetworkTopologyOptions& options, Minecraft& pong_)
 
 	popStartLocation.dir = currentGame->getRandomGenerator().randInt(0, 3) * 90;
 	parStartLocation.dir = currentGame->getRandomGenerator().randInt(0, 3) * 90;
+	pigStartLocation.dir = 0;
+	isStupid = currentGame->getRandomGenerator().randDouble() < 0.25;
 }
 
 bool Agent::isValidStartConstelation(const Location& popStartLocation, const Location& parStartLocation, const Location& pigStartLocation)
@@ -39,6 +45,16 @@ void Agent::setToRandomLocation(Location& location)
 		location.x = currentGame->getRandomGenerator().randInt(2, 6);
 		location.y = currentGame->getRandomGenerator().randInt(1, 5);
 	} while (!currentGame->isFieldAllowed(location.x, location.y + 1, false));
+}
+
+bool Agent::getIsStupid() const
+{
+	return isStupid;
+}
+
+void Agent::setIsStupid(bool isStupid)
+{
+	this->isStupid = isStupid;
 }
 
 
@@ -80,40 +96,131 @@ void Agent::interpretNNOutput(std::vector<double>& output)
 	{
 		if (output[0] > 0.5 || (output[0] <= 0.5 && output[1] <= 0.5 && output[2] <= 0.5))
 		{
-			int nextX = location.x;
-			int nextY = location.y;
-			if (location.dir == 0)
-				nextY++;
-			else if (location.dir == 90)
-				nextX--;
-			else if (location.dir == 180)
-				nextY--;
-			else if (location.dir == 270)
-				nextX++;
-			if (currentGame->isFieldAllowed(nextX, nextY + 1))
-			{
-				location.x = nextX;
-				location.y = nextY;
-			}
+			doStep(location);
 		}
 		else if (output[1] > 0.5)
 		{
-			location.dir -= 90;
-			if (location.dir < 0)
-				location.dir += 360;
+			turnLeft(location);
 		}
 		else if (output[2] > 0.5)
 		{
-			location.dir += 90;
-			location.dir %= 360;
+			turnRight(location);
 		}
 	}
 }
+
+bool Agent::doStep(Location& location)
+{
+	int nextX = location.x;
+	int nextY = location.y;
+	if (location.dir == 0)
+		nextY++;
+	else if (location.dir == 90)
+		nextX--;
+	else if (location.dir == 180)
+		nextY--;
+	else if (location.dir == 270)
+		nextX++;
+	if (currentGame->isFieldAllowed(nextX, nextY + 1))
+	{
+		location.x = nextX;
+		location.y = nextY;
+		return true;
+	}
+	else
+		return false;
+}
+
+void Agent::turnLeft(Location& location)
+{
+	location.dir -= 90;
+	if (location.dir < 0)
+		location.dir += 360;
+}
+
+void Agent::turnRight(Location& location)
+{
+	location.dir += 90;
+	location.dir %= 360;
+}
+
 
 
 void Agent::setEnv(Minecraft &currentGame_)
 {
 	currentGame = &currentGame_;
+}
+
+void Agent::doNNCalculation()
+{
+	if (!static_cast<AbstractCoevolutionEnvironment*>(environment)->isParasiteEnvironment())
+		LightBulb::AbstractDefaultIndividual::doNNCalculation();
+	else
+	{
+		if (isStupid)
+		{
+			int action = currentGame->getRandomGenerator().randInt(0, 2);
+			if (action == 0)
+				doStep(location);
+			else if (action == 1)
+				turnLeft(location);
+			else if (action == 2)
+				turnRight(location);
+			return;
+		}
+
+		const Location& pig = currentGame->getPig();
+		if (std::abs(pig.x - location.x) + std::abs(pig.y - location.y) == 1)
+		{
+			turnRight(location);
+			return;
+		}
+
+		static std::vector<std::pair<int, Location>> openlist;
+		static std::map<Location, std::map<Location, int>> cache;
+
+		if (cache[location][pig] != 0)
+		{
+			if (cache[location][pig] == 1)
+				doStep(location);
+			else if (cache[location][pig] == 2)
+				turnLeft(location);
+			else if (cache[location][pig] == 3)
+				turnRight(location);
+			return;
+		}
+
+		openlist.clear();
+		int index = 0;
+		openlist.push_back(std::make_pair(-1, location));
+
+		while (index < openlist.size())
+		{
+			if (std::abs(pig.x - openlist[index].second.x) + std::abs(pig.y - openlist[index].second.y) == 1)
+			{
+				cache[location][pig] = openlist[index].first + 1;
+				if (openlist[index].first == 0)
+					doStep(location);
+				else if (openlist[index].first == 1)
+					turnLeft(location);
+				else if (openlist[index].first == 2)
+					turnRight(location);
+				return;
+			}
+
+			Location nextStep = openlist[index].second;
+			if (doStep(nextStep))
+				openlist.push_back(std::make_pair(openlist[index].first != -1 ? openlist[index].first : 0, nextStep));
+
+			openlist.push_back(std::make_pair(openlist[index].first != -1 ? openlist[index].first : 1, openlist[index].second));
+			turnLeft(openlist.back().second);
+
+			openlist.push_back(std::make_pair(openlist[index].first != -1 ? openlist[index].first : 2, openlist[index].second));
+			turnRight(openlist.back().second);
+
+			index++;
+		}
+	}
 }
 
 const Location& Agent::getLocation() const

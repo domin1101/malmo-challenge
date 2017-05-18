@@ -221,7 +221,7 @@ void Minecraft::startNewGame(Agent& ai1, Agent& ai2)
 	pig.x = 2;
 	pig.y = 1;
 
-	parStartLocation = popStartLocation;
+	//parStartLocation = popStartLocation;
 
 	ai1.setLocation(isParasiteEnvironment() ? parStartLocation : popStartLocation);
 	ai2.setLocation(isParasiteEnvironment() ? popStartLocation : parStartLocation);
