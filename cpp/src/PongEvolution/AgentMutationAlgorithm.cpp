@@ -42,6 +42,17 @@ void AgentMutationAlgorithm::execute(LightBulb::AbstractIndividual& individual1)
 			parStartLocation.dir += 360;
 		parStartLocation.dir %= 360;
 		agent.setParStartLocation(parStartLocation);
+
+		if (agent.getIsStupid())
+		{
+			if (zigguratGenerator->randDouble() < 0.75)
+				agent.setIsStupid(false);
+		}
+		else
+		{
+			if (zigguratGenerator->randDouble() < 0.25)
+				agent.setIsStupid(true);
+		}
 	}
 }
 

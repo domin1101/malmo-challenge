@@ -24,6 +24,11 @@ struct Location
 			&& lhs.y == rhs.y
 			&& lhs.dir == rhs.dir;
 	}
+
+	bool operator< (const Location& other) const
+	{
+		return (x < other.x || (x == other.x && y < other.y) || (x == other.x && y == other.y && dir < other.dir));
+	}
 };
 
 class Agent : public LightBulb::AbstractDefaultIndividual
@@ -38,7 +43,11 @@ protected:
 	Location popStartLocation;
 	Location parStartLocation;
 	Location pigStartLocation;
+	bool isStupid;
 	void getNNInput(std::vector<double>& input) override;
+	bool doStep(Location& location);
+	void turnLeft(Location& location);
+	void turnRight(Location& location);
 	void interpretNNOutput(std::vector<double>& output) override;
 public:
 	Agent(LightBulb::FeedForwardNetworkTopologyOptions& options, Minecraft& pong_);
@@ -47,7 +56,10 @@ public:
 	void setToRandomLocation(Location& location);
 	Agent() = default;
 	void setEnv(Minecraft& currentGame_);
+	void doNNCalculation() override;
 
+	bool getIsStupid() const;
+	void setIsStupid(bool isStupid);
 	const Location& getLocation() const;
 	const Location& getPopStartLocation() const;
 	const Location& getParStartLocation() const;
