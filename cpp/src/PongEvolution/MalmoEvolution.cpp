@@ -30,6 +30,7 @@
 #include <LightBulb/Learning/Evolution/RandomHallOfFameAlgorithm.hpp>
 #include <LightBulb/Learning/Evolution/WeightDecayFitnessFunction.hpp>
 #include "AgentMutationAlgorithm.hpp"
+#include "MalmoHallOfFameAlgorithm.hpp"
 #include "MalmoCombiningStrategy.hpp"
 
 #define PREFERENCE_POPULATION_SIZE "Population size"
@@ -121,8 +122,8 @@ AbstractEvolutionEnvironment* MalmoEvolution::createParasiteEnvironment()
 {
 	cs2 = new MalmoCombiningStrategy(getIntegerPreference(PREFERENCE_COMPETITIONS_SIZE));
 
-	hof1.reset(new RandomHallOfFameAlgorithm(getIntegerPreference(PREFERENCE_HALLOFFAME_COMPETITIONS_SIZE)));
-	hof2.reset(new RandomHallOfFameAlgorithm(getIntegerPreference(PREFERENCE_HALLOFFAME_COMPETITIONS_SIZE)));
+	hof1.reset(new MalmoHallOfFameAlgorithm(getIntegerPreference(PREFERENCE_HALLOFFAME_COMPETITIONS_SIZE)));
+	hof2.reset(new MalmoHallOfFameAlgorithm(getIntegerPreference(PREFERENCE_HALLOFFAME_COMPETITIONS_SIZE)));
 
 	FeedForwardNetworkTopologyOptions options = getNetworkOptions(16);
 	return new Minecraft(options, true, cs2, new SharedCoevolutionFitnessFunction(), &hof2, &hof1);
