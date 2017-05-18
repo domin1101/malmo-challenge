@@ -72,8 +72,8 @@ void MinecraftController::fieldChanged(Minecraft& minecraft)
 	if (field.size() == 0)
 		field = minecraft.getField();
 
-	ai1Location = minecraft.getAgent1().getLocation();
-	ai2Location = minecraft.getAgent2().getLocation();
+	ai1Location = minecraft.getCurrentAgent().getLocation();
+	ai2Location = minecraft.getCurrentParasite();
 	pig = minecraft.getPig();
 
 	wxThreadEvent evt(PONG_EVT_FIELD_CHANGED);

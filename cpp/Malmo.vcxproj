@@ -108,27 +108,20 @@
     <ClCompile Include="src\BackpropagationXor\BackpropagationXorExample.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\pongevolution\Agent.cpp" />
-    <ClCompile Include="src\PongEvolution\AgentMutationAlgorithm.cpp" />
     <ClCompile Include="src\pongevolution\MalmoEvolution.cpp" />
-    <ClCompile Include="src\PongEvolution\MalmoFitnessFunction.cpp" />
     <ClCompile Include="src\pongevolution\Minecraft.cpp" />
     <ClCompile Include="src\pongevolution\MinecraftController.cpp" />
     <ClCompile Include="src\pongevolution\MinecraftFactory.cpp" />
     <ClCompile Include="src\pongevolution\MinecraftWindow.cpp" />
-    <ClCompile Include="src\PongEvolution\MalmoCombiningStrategy.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\BackpropagationXor\BackpropagationXorExample.hpp" />
     <ClInclude Include="src\pongevolution\Agent.hpp" />
-    <ClInclude Include="src\PongEvolution\AgentIO.hpp" />
-    <ClInclude Include="src\PongEvolution\AgentMutationAlgorithm.hpp" />
     <ClInclude Include="src\pongevolution\MalmoEvolution.hpp" />
-    <ClInclude Include="src\PongEvolution\MalmoFitnessFunction.hpp" />
     <ClInclude Include="src\pongevolution\Minecraft.hpp" />
     <ClInclude Include="src\pongevolution\MinecraftController.hpp" />
     <ClInclude Include="src\pongevolution\MinecraftFactory.hpp" />
     <ClInclude Include="src\pongevolution\MinecraftWindow.hpp" />
-    <ClInclude Include="src\PongEvolution\MalmoCombiningStrategy.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

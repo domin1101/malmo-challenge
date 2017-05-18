@@ -20,16 +20,16 @@ AbstractIndividual* Minecraft::createNewIndividual()
 
 std::vector<std::string> Minecraft::getDataSetLabels() const
 {
-	auto labels = AbstractCoevolutionEnvironment::getDataSetLabels();
-	labels.push_back(std::string(parasiteEnvironment ? DATASET_PARASITE_PREFIX : "") + DATASET_AVG_REWARD);
-	labels.push_back(std::string(parasiteEnvironment ? DATASET_PARASITE_PREFIX : "") + DATASET_BEST_REWARD);
-	labels.push_back(std::string(parasiteEnvironment ? DATASET_PARASITE_PREFIX : "") + DATASET_AVG_MUT_STRENGTH);
+	auto labels = AbstractSimpleEvolutionEnvironment::getDataSetLabels();
+	labels.push_back(DATASET_AVG_REWARD);
+	labels.push_back(DATASET_BEST_REWARD);
+	labels.push_back(DATASET_AVG_MUT_STRENGTH);
 	return labels;
 }
 
 
-Minecraft::Minecraft(FeedForwardNetworkTopologyOptions& options_, bool isParasiteEnvironment_, AbstractCombiningStrategy* combiningStrategy_, AbstractCoevolutionFitnessFunction* fitnessFunction_, const std::shared_ptr<LightBulb::AbstractHallOfFameAlgorithm>* hallOfFameToAddAlgorithm_, const std::shared_ptr<LightBulb::AbstractHallOfFameAlgorithm>* hallOfFameToChallengeAlgorithm_)
-	: AbstractCoevolutionEnvironment(isParasiteEnvironment_, combiningStrategy_, fitnessFunction_, hallOfFameToAddAlgorithm_, hallOfFameToChallengeAlgorithm_)
+Minecraft::Minecraft(FeedForwardNetworkTopologyOptions& options_)
+	: AbstractSimpleEvolutionEnvironment()
 {
 	options.reset(new FeedForwardNetworkTopologyOptions(options_));
 	fields.resize(FIELD_SIZE, std::vector<int>(FIELD_SIZE, 0));
@@ -71,162 +71,136 @@ Minecraft::Minecraft(FeedForwardNetworkTopologyOptions& options_, bool isParasit
 	totalReward = 0;
 	matchCount = 0;
 	lastBestIndividual = nullptr;
-}
 
-int Minecraft::doCompare(AbstractIndividual& obj1, AbstractIndividual& obj2, int round)
-{
-	/*for (int i = 0; i < 3; i++)
-	{
-		int reward = simulateGame(static_cast<Agent&>(obj1), static_cast<Agent&>(obj2), round);
-		if (isParasiteEnvironment() && reward == 1)
-			return 1;
-		else if (!isParasiteEnvironment() && reward == -1)
-			return -1;
-	}
-	return isParasiteEnvironment() ? -1 : 1;*/
-	return simulateGame(static_cast<Agent&>(obj1), static_cast<Agent&>(obj2), round);
+
 }
 
 
-int Minecraft::getRoundCount() const
+int Minecraft::simulateGame(Agent& agent, GamePreferences& gamePreferences)
 {
-	return 2;
-}
+	currentAgent = &agent;
 
+	agent.resetNN();
 
-int Minecraft::simulateGame(Agent& ai1, Agent& ai2, int startPlayer)
-{
-	currentAi1 = &ai1;
-	currentAi2 = &ai2;
+	startNewGame(agent, gamePreferences);
 
-	ai2.resetNN();
-	ai1.resetNN();
-
-	ai1.setEnv(*this);
-	ai2.setEnv(*this);
-
-	startNewGame(ai1, ai2);
-
-	if (parasiteEnvironment)
-		startPlayer = 1 - startPlayer;
-	currentPlayer = startPlayer;
-	std::vector<int> rewards = {0, 0};
+	currentPlayer = 0;
+	int reward = 0;
 	int noPosDirChangesInRow = 0;
 	int noPosChangesInRow = 0;
 
 	for (int t = 0; t < 50; t++)
 	{
-		Agent& currentAgent = currentPlayer == 0 ? ai1 : ai2;
-
-		Location prevLocation = currentAgent.getLocation();
-		currentAgent.doNNCalculation();
-		rewards[currentPlayer] += getReward(currentAgent);
-
-		if (prevLocation.x == currentAgent.getLocation().x && prevLocation.y == currentAgent.getLocation().y)
+		if (currentPlayer == 0)
 		{
-			if (prevLocation.dir == currentAgent.getLocation().dir)
-				noPosDirChangesInRow++;
-			else
-				noPosDirChangesInRow = 0;
-			noPosChangesInRow++;
-			if (noPosDirChangesInRow >= 2 || noPosChangesInRow >= 8)
-			{
-				rewards = { -25, -25 };
-				break;
-			}
+			agent.doNNCalculation();
+			reward += getReward(agent);
 		}
 		else
-		{
-			noPosDirChangesInRow = 0;
-			noPosChangesInRow = 0;
-		}
+			doParasiteStep();
 
 		currentPlayer = 1 - currentPlayer;
 
-		if (watchMode && lastBestIndividual == &ai1)
+		if (watchMode)
 		{
 			throwEvent(EVT_FIELD_CHANGED, *this);
 			std::this_thread::sleep_for(std::chrono::milliseconds(100));
 		}
 
-		if (isDone(ai1, ai2, currentPlayer, startPlayer))
+		if (isDone(agent.getLocation(), parasite, currentPlayer, 0))
 			break;
 	}
 
 	if (isPigCaught())
-		rewards[currentPlayer] += 25;
+		reward += 25;
 
-	bestReward = std::max(bestReward, rewards[0]);
-	totalReward += rewards[0];
+	bestReward = std::max(bestReward, reward);
+	totalReward += reward;
 	matchCount++;
 
-	if (parasiteEnvironment)
-		return rewards[1];
-	else
-		return rewards[0];
+	return reward;
+}
 
-	if (rewards[0] == rewards[1]) {
-		if (parasiteEnvironment)
-			return -1;
-		else
-			return 1;
+
+void Minecraft::doSimulationStep()
+{
+	if (gamePreferenceses.size() == 0)
+	{
+		gamePreferenceses.resize(100);
+		for (int i = 0; i < 100; i++)
+			generateRandomGamePreference(gamePreferenceses[i]);
 	}
-	else
-		return rewards[0] > rewards[1] ? 1 : -1;
+
+	for (auto individual = individuals.begin(); individual != individuals.end(); individual++)
+	{
+		fitnessValues[*individual] = 0;
+		for (int i = 0; i < 100; i++)
+			fitnessValues[*individual] += simulateGame(static_cast<Agent&>(**individual), gamePreferenceses[i]);
+	}
+	learningState->addData(DATASET_BEST_REWARD, static_cast<double>(bestReward));
+	learningState->addData(DATASET_AVG_REWARD, static_cast<double>(totalReward) / matchCount);
+	totalReward = 0;
+	matchCount = 0;
+	bestReward = -25;
+}
+
+double Minecraft::getFitness(const LightBulb::AbstractIndividual& individual) const
+{
+	return fitnessValues[&individual];
+}
+
+void Minecraft::doParasiteStep()
+{
 }
 
 int Minecraft::rateIndividual(AbstractIndividual& individual)
 {
-	lastBestIndividual = &individual;
-	learningState->addData(std::string(parasiteEnvironment ? DATASET_PARASITE_PREFIX : "") + DATASET_BEST_REWARD, static_cast<double>(bestReward));
-	learningState->addData(std::string(parasiteEnvironment ? DATASET_PARASITE_PREFIX : "") + DATASET_AVG_REWARD, static_cast<double>(totalReward) / matchCount);
-	learningState->addData(std::string(parasiteEnvironment ? DATASET_PARASITE_PREFIX : "") + DATASET_AVG_MUT_STRENGTH, std::accumulate(individual.getMutationStrength().begin(), individual.getMutationStrength().end(), 0.0) / individual.getMutationStrength().size());
-	bestReward = -25;
-	totalReward = 0;
-	matchCount = 0;
+	lastBestIndividual = &individual;	
 	return 0;
 }
 
-bool Minecraft::isDone(Agent& ai1, Agent& ai2, int currentPlayer, int startPlayer)
+bool Minecraft::isDone(const Location& ai1, const Location& ai2, int currentPlayer, int startPlayer)
 {
-	return isPigCaught() || (currentPlayer == startPlayer && (fields[ai1.getLocation().x][ai1.getLocation().y + 1] == 2 || fields[ai2.getLocation().x][ai2.getLocation().y + 1] == 2));
+	return isPigCaught() || (currentPlayer == startPlayer && (fields[ai1.x][ai1.y + 1] == 2 || fields[ai2.x][ai2.y + 1] == 2));
 }
 
 bool Minecraft::isPigCaught()
 {
-	return isFieldBlockedForPig(pig.x, pig.y + 2) && isFieldBlockedForPig(pig.x, pig.y) && isFieldBlockedForPig(pig.x - 1, pig.y + 1) && isFieldBlockedForPig(pig.x + 1, pig.y + 1);
+	return false && isFieldBlockedForPig(pig.x, pig.y + 2) && isFieldBlockedForPig(pig.x, pig.y) && isFieldBlockedForPig(pig.x - 1, pig.y + 1) && isFieldBlockedForPig(pig.x + 1, pig.y + 1);
 }
 
 bool Minecraft::isFieldBlockedForPig(int x, int y)
 {
-	return !isFieldAllowed(x, y) || (currentAi1->getLocation().x == x && currentAi1->getLocation().y + 1 == y) || (currentAi2->getLocation().x == x && currentAi2->getLocation().y + 1 == y);
+	return !isFieldAllowed(x, y) || (currentAgent->getLocation().x == x && currentAgent->getLocation().y + 1 == y) || (parasite.x == x && parasite.y + 1 == y);
 }
 
-void Minecraft::startNewGame(Agent& ai1, Agent& ai2)
+
+void Minecraft::generateRandomGamePreference(GamePreferences& gamePreferences)
 {
-	Location popStartLocation, parStartLocation;
-	if (isParasiteEnvironment())
+	do
 	{
-		parStartLocation = ai1.getParStartLocation();
-		popStartLocation = ai1.getPopStartLocation();
-		pig = ai1.getPigStartLocation();
-	}
-	else
-	{
-		parStartLocation = ai2.getParStartLocation();
-		popStartLocation = ai2.getPopStartLocation();
-		pig = ai2.getPigStartLocation();
-	}
+		setToRandomLocation(gamePreferences.popStartLocation);
+		setToRandomLocation(gamePreferences.parStartLocation);
+		setToRandomLocation(gamePreferences.pigStartLocation);
+	} while (!isValidStartConstelation(gamePreferences.popStartLocation, gamePreferences.parStartLocation, gamePreferences.pigStartLocation));
+
+	gamePreferences.popStartLocation.dir = getRandomGenerator().randInt(0, 3) * 90;
+	gamePreferences.parStartLocation.dir = getRandomGenerator().randInt(0, 3) * 90;
+}
+
+void Minecraft::startNewGame(Agent& agent, GamePreferences& gamePreferences)
+{
+	
 
 	//pig.x = 2;
 	//pig.y = 1;
 
 	//parStartLocation = popStartLocation;
 
-	ai1.setLocation(isParasiteEnvironment() ? parStartLocation : popStartLocation);
-	ai2.setLocation(isParasiteEnvironment() ? popStartLocation : parStartLocation);
+	agent.setLocation(gamePreferences.popStartLocation);
+	parasite = gamePreferences.parStartLocation;
+	pig = gamePreferences.pigStartLocation;
 
-	isInteresting = (isParasiteEnvironment() && ai1.getLocation().dir == 0 && ai2.getLocation().dir == 90);
 	/*
 	do
 	{
@@ -239,42 +213,25 @@ void Minecraft::startNewGame(Agent& ai1, Agent& ai2)
 	} while (!isFieldAllowed(ai2.getLocation().x, ai2.getLocation().y + 1));*/
 }
 
-void Minecraft::getNNInputFull(std::vector<double>& input)
+
+bool Minecraft::isValidStartConstelation(const Location& popStartLocation, const Location& parStartLocation, const Location& pigStartLocation)
 {
-	input.resize(FIELD_SIZE * FIELD_SIZE * 4, 0);
+	return  isFieldAllowed(popStartLocation.x, popStartLocation.y + 1, false) && isFieldAllowed(parStartLocation.x, parStartLocation.y + 1, false) && isFieldAllowed(pigStartLocation.x, pigStartLocation.y + 1, false) &&
+		calcDistance(popStartLocation, parStartLocation) > 1.1f && calcDistance(parStartLocation, pigStartLocation) > 1.1f && calcDistance(popStartLocation, pigStartLocation) > 1.1f;
+}
 
-	for (int x = 0; x < FIELD_SIZE; x++)
-	{
-		for (int y = 0; y < FIELD_SIZE; y++)
-		{
-			setBlock(input, x, y, grayPalette[fields[x][y]]);
-		}
-	}
+float Minecraft::calcDistance(const Location& location1, const Location& location2)
+{
+	return sqrt(pow((float)location1.x - (float)location2.x, 2) + pow((float)location1.y - (float)location2.y, 2));
+}
 
-	if (currentPlayer == 0)
+void Minecraft::setToRandomLocation(Location& location)
+{
+	do
 	{
-		setBlock(input, currentAi1->getLocation().x, currentAi1->getLocation().y + 1, currentAi1->getLocation().dir, 50);
-		//setBlock(input, currentAi2->getLocation().x, currentAi2->getLocation().y + 1, currentAi2->getLocation().dir, 100);
-	}
-	else
-	{
-		setBlock(input, currentAi2->getLocation().x, currentAi2->getLocation().y + 1, currentAi2->getLocation().dir, 50);
-		//setBlock(input, currentAi1->getLocation().x, currentAi1->getLocation().y + 1, currentAi1->getLocation().dir, 100);
-	}
-
-	/*
-	std::string output = "";
-	for (int y = 0; y < DOUBLEFIELD_SIZE; y++)
-	{
-		for (int x = 0; x < DOUBLEFIELD_SIZE; x++)
-		{
-			output += std::to_string((int)input[x + y * DOUBLEFIELD_SIZE]) + " ";
-		}
-		output += "\n";
-	}
-	std::cout << output;*/
-
-	std::for_each(input.begin(), input.end(), [](double &n){ n /= 255; });
+		location.x = getRandomGenerator().randInt(2, 6);
+		location.y = getRandomGenerator().randInt(1, 5);
+	} while (!isFieldAllowed(location.x, location.y + 1, false));
 }
 
 
@@ -294,24 +251,11 @@ void Minecraft::setInputForAgent(std::vector<double>& input, int x, int y, int d
 
 void Minecraft::getNNInput(std::vector<double>& input)
 {
-	bool isParasite = currentPlayer == 0 && isParasiteEnvironment() || currentPlayer == 1 && !isParasiteEnvironment();
-	input.resize(isParasite ? 16 : 24, 0);
+	input.resize(24, 0);
 
-	if (currentPlayer == 0)
-	{
-		setInputForAgent(input, pig.x, pig.y + 1, 0, 0);
-		setInputForAgent(input, currentAi1->getLocation().x, currentAi1->getLocation().y + 1, currentAi1->getLocation().dir, 8);
-		if (!isParasite)
-			setInputForAgent(input, currentAi2->getLocation().x, currentAi2->getLocation().y + 1, currentAi2->getLocation().dir, 16);
-			
-	}
-	else
-	{
-		setInputForAgent(input, pig.x, pig.y + 1, 0, 0);
-		setInputForAgent(input, currentAi2->getLocation().x, currentAi2->getLocation().y + 1, currentAi2->getLocation().dir, 8);
-		if (!isParasite)
-			setInputForAgent(input, currentAi1->getLocation().x, currentAi1->getLocation().y + 1, currentAi1->getLocation().dir, 16);
-	}
+	setInputForAgent(input, pig.x, pig.y + 1, 0, 0);
+	setInputForAgent(input, currentAgent->getLocation().x, currentAgent->getLocation().y + 1, currentAgent->getLocation().dir, 8);
+	setInputForAgent(input, parasite.x, parasite.y + 1, parasite.dir, 16);
 }
 
 
@@ -382,14 +326,14 @@ const std::vector<std::vector<int>> &Minecraft::getField()
 	return fields;
 }
 
-const Agent &Minecraft::getAgent1()
+const Agent &Minecraft::getCurrentAgent()
 {
-	return *currentAi1;
+	return *currentAgent;
 }
 
-const Agent &Minecraft::getAgent2()
+const Location& Minecraft::getCurrentParasite()
 {
-	return *currentAi2;
+	return parasite;
 }
 
 const Location& Minecraft::getPig()

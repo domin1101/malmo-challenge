@@ -29,9 +29,6 @@
 #include <LightBulb/Learning/Evolution/PhasedTopologyMutationAlgorithm.hpp>
 #include <LightBulb/Learning/Evolution/RandomHallOfFameAlgorithm.hpp>
 #include <LightBulb/Learning/Evolution/WeightDecayFitnessFunction.hpp>
-#include "AgentMutationAlgorithm.hpp"
-#include "MalmoCombiningStrategy.hpp"
-#include "MalmoFitnessFunction.hpp"
 
 #define PREFERENCE_POPULATION_SIZE "Population size"
 #define PREFERENCE_MUTATION_PERCENTAGE "Mutation percentage"
@@ -51,14 +48,13 @@ using namespace LightBulb;
 
 AbstractLearningRule* MalmoEvolution::createLearningRate()
 {
-
 	EvolutionLearningRuleOptions options;
 	
 	options.creationCommands.push_back(new ConstantCreationCommand(getIntegerPreference(PREFERENCE_CREATE_UP_TO)));
 	//options.exitConditions.push_back(new PerfectIndividualFoundCondition(1000));
 	options.reuseCommands.push_back(new ConstantReuseCommand(new BestReuseSelector(), 1));
 	options.selectionCommands.push_back(new BestSelectionCommand(getIntegerPreference(PREFERENCE_POPULATION_SIZE)));
-	options.mutationsCommands.push_back(new ConstantMutationCommand(new AgentMutationAlgorithm(getDoublePreference(PREFERENCE_MUTATIONSTRENGTH_CHANGESPEED), 1), new RandomSelector(new RankBasedRandomFunction()), getDoublePreference(PREFERENCE_MUTATION_PERCENTAGE)));
+	options.mutationsCommands.push_back(new ConstantMutationCommand(new MutationAlgorithm(getDoublePreference(PREFERENCE_MUTATIONSTRENGTH_CHANGESPEED), 1), new RandomSelector(new RankBasedRandomFunction()), getDoublePreference(PREFERENCE_MUTATION_PERCENTAGE)));
 	options.recombinationCommands.push_back(new ConstantRecombinationCommand(new RecombinationAlgorithm(), new RandomSelector(new RankBasedRandomFunction()), getDoublePreference(PREFERENCE_RECOMBINATION_PERCENTAGE)));
 	//options.mutationsCommands.push_back(new ConstantMutationCommand(new MagnitudeBasedPruningMutationAlgorithm(1, 0, true, true), new RandomSelector(new RankBasedRandomFunction()), getDoublePreference(PREFERENCE_TOPOLOGY_MUTATION_PERCENTAGE)));
 	//options.fitnessFunctions.push_back(new WeightDecayFitnessFunction(getDoublePreference(PREFERENCE_WEIGHTDECAY_FAC)));
@@ -71,21 +67,11 @@ AbstractLearningRule* MalmoEvolution::createLearningRate()
 
 	//options.fitnessFunctions.push_back(new FitnessSharingFitnessFunction(150));
 
-	fillDefaultEvolutionLearningRule1Options(options);
+	fillDefaultLearningRuleOptions(options);
 
 	//options.recombinationCommands.push_back(new ConstantRecombinationCommand(7));
 
-	EvolutionLearningRule* learningRule1 = new EvolutionLearningRule(options);
-	fillDefaultEvolutionLearningRule2Options(options);
-	EvolutionLearningRule* learningRule2 = new EvolutionLearningRule(options);
-
-	CoevolutionLearningRuleOptions coevolutionLearningRuleOptions;
-	coevolutionLearningRuleOptions.learningRule1 = learningRule1;
-	coevolutionLearningRuleOptions.learningRule2 = learningRule2;
-	coevolutionLearningRuleOptions.maxIterationsPerTry = 1000000;
-	fillDefaultLearningRuleOptions(coevolutionLearningRuleOptions);
-
-	return new CoevolutionLearningRule(coevolutionLearningRuleOptions);
+	return new EvolutionLearningRule(options);
 }
 
 
@@ -106,27 +92,10 @@ FeedForwardNetworkTopologyOptions MalmoEvolution::getNetworkOptions(int inputSiz
 
 AbstractEvolutionEnvironment* MalmoEvolution::createEnvironment()
 {
-	cs1 = new MalmoCombiningStrategy(getIntegerPreference(PREFERENCE_COMPETITIONS_SIZE));
-
 	FeedForwardNetworkTopologyOptions options = getNetworkOptions(24);
-	Minecraft* pong1 = new Minecraft(options, false, cs1, new MalmoFitnessFunction(), &hof1, &hof2);
 
-	cs1->setSecondEnvironment(static_cast<Minecraft&>(*parasiteEnvironment.get()));
-	cs2->setSecondEnvironment(*pong1);
+	return new Minecraft(options);
 
-	return pong1;
-
-}
-
-AbstractEvolutionEnvironment* MalmoEvolution::createParasiteEnvironment()
-{
-	cs2 = new MalmoCombiningStrategy(getIntegerPreference(PREFERENCE_COMPETITIONS_SIZE));
-
-	hof1.reset(new RandomHallOfFameAlgorithm(getIntegerPreference(PREFERENCE_HALLOFFAME_COMPETITIONS_SIZE)));
-	hof2.reset(new RandomHallOfFameAlgorithm(getIntegerPreference(PREFERENCE_HALLOFFAME_COMPETITIONS_SIZE)));
-
-	FeedForwardNetworkTopologyOptions options = getNetworkOptions(16);
-	return new Minecraft(options, true, cs2, new MalmoFitnessFunction(), &hof2, &hof1);
 }
 
 MalmoEvolution::MalmoEvolution()
@@ -138,7 +107,6 @@ MalmoEvolution::MalmoEvolution()
 	addPreference(new IntegerPreference(PREFERENCE_POPULATION_SIZE, 150, 1, 1000));
 	addPreference(new IntegerPreference(PREFERENCE_CREATE_UP_TO, 250, 1, 1000));
 	addPreference(new IntegerPreference(PREFERENCE_COMPETITIONS_SIZE, 25, 1, 1000));
-	addPreference(new IntegerPreference(PREFERENCE_HALLOFFAME_COMPETITIONS_SIZE, 0, 1, 1000));
 	addPreference(new BooleanPreference(PREFERENCE_SHORTCUT_ENABLE, false));
 	addPreference(new IntegerPreference(PREFERENCE_NEURON_COUNT_FIRST_LAYER, 32, 1, 30));
 	addPreference(new BooleanPreference(PREFERENCE_SECOND_LAYER_ENABLE, false));
