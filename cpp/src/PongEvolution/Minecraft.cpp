@@ -189,7 +189,7 @@ int Minecraft::rateIndividual(AbstractIndividual& individual)
 
 bool Minecraft::isDone(Agent& ai1, Agent& ai2, int currentPlayer, int startPlayer)
 {
-	return isPigCaught();// || (currentPlayer == startPlayer && (fields[ai1.getLocation().x][ai1.getLocation().y + 1] == 2 || fields[ai2.getLocation().x][ai2.getLocation().y + 1] == 2));
+	return isPigCaught() || (currentPlayer == startPlayer && (fields[ai1.getLocation().x][ai1.getLocation().y + 1] == 2 || fields[ai2.getLocation().x][ai2.getLocation().y + 1] == 2));
 }
 
 bool Minecraft::isPigCaught()
@@ -218,8 +218,8 @@ void Minecraft::startNewGame(Agent& ai1, Agent& ai2)
 		pig = ai2.getPigStartLocation();
 	}
 
-	pig.x = 2;
-	pig.y = 1;
+	//pig.x = 2;
+	//pig.y = 1;
 
 	//parStartLocation = popStartLocation;
 
@@ -359,7 +359,7 @@ void Minecraft::setBlock(std::vector<double>& input, int x, int y, int dir, int 
 
 int Minecraft::getReward(Agent &agent)
 {
-	return -1 + (isPigCaught() ? 25 : 0);// +(fields[agent.getLocation().x][agent.getLocation().y + 1] == 2 ? 5 : 0);
+	return -1 + (isPigCaught() ? 25 : 0) +(fields[agent.getLocation().x][agent.getLocation().y + 1] == 2 ? 5 : 0);
 }
 
 bool Minecraft::isFieldAllowed(int x, int y, bool allowLapis)

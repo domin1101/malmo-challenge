@@ -15,8 +15,8 @@ class MalmoEvolution : public LightBulb::AbstractCoevolutionTrainingPlan
 private:
 	std::shared_ptr<LightBulb::AbstractHallOfFameAlgorithm> hof1;
 	std::shared_ptr<LightBulb::AbstractHallOfFameAlgorithm> hof2;
-	LightBulb::SharedSamplingCombiningStrategy* cs1;
-	LightBulb::SharedSamplingCombiningStrategy* cs2;
+	LightBulb::AbstractCombiningStrategy* cs1;
+	LightBulb::AbstractCombiningStrategy* cs2;
 protected:
 	LightBulb::AbstractLearningRule* createLearningRate() override;
 	LightBulb::FeedForwardNetworkTopologyOptions getNetworkOptions(int inputSize);

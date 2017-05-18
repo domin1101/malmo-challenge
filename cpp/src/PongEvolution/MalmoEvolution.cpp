@@ -31,6 +31,7 @@
 #include <LightBulb/Learning/Evolution/WeightDecayFitnessFunction.hpp>
 #include "AgentMutationAlgorithm.hpp"
 #include "MalmoCombiningStrategy.hpp"
+#include "MalmoFitnessFunction.hpp"
 
 #define PREFERENCE_POPULATION_SIZE "Population size"
 #define PREFERENCE_MUTATION_PERCENTAGE "Mutation percentage"
@@ -108,7 +109,7 @@ AbstractEvolutionEnvironment* MalmoEvolution::createEnvironment()
 	cs1 = new MalmoCombiningStrategy(getIntegerPreference(PREFERENCE_COMPETITIONS_SIZE));
 
 	FeedForwardNetworkTopologyOptions options = getNetworkOptions(24);
-	Minecraft* pong1 = new Minecraft(options, false, cs1, new SharedCoevolutionFitnessFunction(), &hof1, &hof2);
+	Minecraft* pong1 = new Minecraft(options, false, cs1, new MalmoFitnessFunction(), &hof1, &hof2);
 
 	cs1->setSecondEnvironment(static_cast<Minecraft&>(*parasiteEnvironment.get()));
 	cs2->setSecondEnvironment(*pong1);
@@ -125,7 +126,7 @@ AbstractEvolutionEnvironment* MalmoEvolution::createParasiteEnvironment()
 	hof2.reset(new RandomHallOfFameAlgorithm(getIntegerPreference(PREFERENCE_HALLOFFAME_COMPETITIONS_SIZE)));
 
 	FeedForwardNetworkTopologyOptions options = getNetworkOptions(16);
-	return new Minecraft(options, true, cs2, new SharedCoevolutionFitnessFunction(), &hof2, &hof1);
+	return new Minecraft(options, true, cs2, new MalmoFitnessFunction(), &hof2, &hof1);
 }
 
 MalmoEvolution::MalmoEvolution()
