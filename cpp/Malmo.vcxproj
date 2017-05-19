@@ -109,6 +109,7 @@
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\pongevolution\Agent.cpp" />
     <ClCompile Include="src\PongEvolution\AgentMutationAlgorithm.cpp" />
+    <ClCompile Include="src\PongEvolution\TensorflowExporter.cpp" />
     <ClCompile Include="src\pongevolution\MalmoEvolution.cpp" />
     <ClCompile Include="src\PongEvolution\MalmoFitnessFunction.cpp" />
     <ClCompile Include="src\pongevolution\Minecraft.cpp" />
@@ -122,6 +123,7 @@
     <ClInclude Include="src\pongevolution\Agent.hpp" />
     <ClInclude Include="src\PongEvolution\AgentIO.hpp" />
     <ClInclude Include="src\PongEvolution\AgentMutationAlgorithm.hpp" />
+    <ClInclude Include="src\PongEvolution\TensorflowExporter.hpp" />
     <ClInclude Include="src\pongevolution\MalmoEvolution.hpp" />
     <ClInclude Include="src\PongEvolution\MalmoFitnessFunction.hpp" />
     <ClInclude Include="src\pongevolution\Minecraft.hpp" />

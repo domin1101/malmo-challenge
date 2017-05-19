@@ -4,12 +4,18 @@
 
 using namespace LightBulb;
 
-Agent::Agent(FeedForwardNetworkTopologyOptions& options, Minecraft& pong_)
+Agent::Agent(FeedForwardNetworkTopologyOptions& options, Minecraft& pong_, bool forceParasite)
 	: AbstractDefaultIndividual(pong_)
 {
 	currentGame = &pong_;
 	buildNeuralNetwork(options);
+	isParasite = static_cast<AbstractCoevolutionEnvironment*>(environment)->isParasiteEnvironment() || forceParasite;
+	
+	randomizeState();
+}
 
+void Agent::randomizeState()
+{
 	do
 	{
 		setToRandomLocation(popStartLocation);
@@ -22,6 +28,7 @@ Agent::Agent(FeedForwardNetworkTopologyOptions& options, Minecraft& pong_)
 	pigStartLocation.dir = 0;
 	isStupid = currentGame->getRandomGenerator().randDouble() < 0.25;
 }
+
 
 bool Agent::isValidStartConstelation(const Location& popStartLocation, const Location& parStartLocation, const Location& pigStartLocation)
 {
@@ -86,7 +93,7 @@ void Agent::turnRight(Location& location)
 
 void Agent::interpretNNOutput(std::vector<double>& output)
 {
-	if (false && static_cast<AbstractCoevolutionEnvironment*>(environment)->isParasiteEnvironment())
+	if (false && isParasite)
 	{
 		if (location.dir == 0 || location.dir == 180)
 		{
@@ -132,7 +139,7 @@ void Agent::interpretNNOutput(std::vector<double>& output)
 
 void Agent::doNNCalculation()
 {
-	if (!static_cast<AbstractCoevolutionEnvironment*>(environment)->isParasiteEnvironment())
+	if (!isParasite)
 		LightBulb::AbstractDefaultIndividual::doNNCalculation();
 	else
 	{

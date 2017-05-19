@@ -48,6 +48,9 @@
     <ClCompile Include="src\PongEvolution\MalmoFitnessFunction.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\PongEvolution\TensorflowExporter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\pongevolution\Agent.hpp">
@@ -81,6 +84,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\PongEvolution\MalmoFitnessFunction.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\PongEvolution\TensorflowExporter.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

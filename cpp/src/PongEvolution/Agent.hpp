@@ -43,6 +43,7 @@ protected:
 	Location popStartLocation;
 	Location parStartLocation;
 	Location pigStartLocation;
+	bool isParasite;
 	bool isStupid;
 	void getNNInput(std::vector<double>& input) override;
 	bool doStep(Location& location);
@@ -50,7 +51,7 @@ protected:
 	void turnRight(Location& location);
 	void interpretNNOutput(std::vector<double>& output) override;
 public:
-	Agent(LightBulb::FeedForwardNetworkTopologyOptions& options, Minecraft& pong_);
+	Agent(LightBulb::FeedForwardNetworkTopologyOptions& options, Minecraft& pong_, bool forceParasite = false);
 	bool isValidStartConstelation(const Location& popStartLocation, const Location& parStartLocation, const Location& pigStartLocation);
 	float calcDistance(const Location& location1, const Location& location2);
 	void setToRandomLocation(Location& location);
@@ -69,6 +70,7 @@ public:
 	void setPopStartLocation(Location popStartLocation);
 	void setParStartLocation(Location parStartLocation);
 	void copyPropertiesFrom(AbstractIndividual& notUsedIndividual) override;
+	void randomizeState();
 };
 
 #include "AgentIO.hpp"

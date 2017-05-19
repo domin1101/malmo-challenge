@@ -22,6 +22,7 @@ class AbstractTile;
 #define DATASET_AVG_REWARD "Avg reward"
 #define DATASET_BEST_REWARD "Best reward"
 #define DATASET_AVG_MUT_STRENGTH "Average mutation strength"
+#define DATASET_CHALLENGE "Challenge performance"
 
 enum MinecraftEvents
 {

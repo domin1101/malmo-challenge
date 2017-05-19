@@ -24,6 +24,8 @@ std::vector<std::string> Minecraft::getDataSetLabels() const
 	labels.push_back(std::string(parasiteEnvironment ? DATASET_PARASITE_PREFIX : "") + DATASET_AVG_REWARD);
 	labels.push_back(std::string(parasiteEnvironment ? DATASET_PARASITE_PREFIX : "") + DATASET_BEST_REWARD);
 	labels.push_back(std::string(parasiteEnvironment ? DATASET_PARASITE_PREFIX : "") + DATASET_AVG_MUT_STRENGTH);
+	if (!parasiteEnvironment)
+		labels.push_back(DATASET_CHALLENGE);
 	return labels;
 }
 
@@ -184,6 +186,23 @@ int Minecraft::rateIndividual(AbstractIndividual& individual)
 	bestReward = -25;
 	totalReward = 0;
 	matchCount = 0;
+
+
+	if (!isParasiteEnvironment())
+	{
+		Agent parasite(*options, *this, true);
+		int rewards = 0;
+
+		for (int i = 0; i < 100; i++)
+		{
+			parasite.randomizeState();
+			rewards += simulateGame(static_cast<Agent&>(individual), parasite, getRandomGenerator().randInt(0, 1));
+		}
+
+		learningState->addData(DATASET_CHALLENGE, rewards / 100.0);
+	}
+
+
 	return 0;
 }
 
