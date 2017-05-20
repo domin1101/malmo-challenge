@@ -52,10 +52,33 @@ class EvolutionAgent(BaseAgent):
         # Stats related
         self._stats_rewards = []
 
+    def _add_input_for_entity(self, input, state, offset):
+        x = int(state['x'])
+        y = int(state['z'] + 1)
+        dir = int(state['yaw'])
+
+        x -= 1
+        y -= 1
+
+        input[offset + 0] = int(x == 1 or x == 3 or x == 5 or x == 7)
+        input[offset + 1] = int(x == 2 or x == 3 or x == 6 or x == 7)
+        input[offset + 2] = int(x >= 4)
+        input[offset + 3] = int(y == 1 or y == 3 or y == 5 or y == 7)
+        input[offset + 4] = int(y == 2 or y == 3 or y == 6 or y == 7)
+        input[offset + 5] = int(y >= 4)
+        input[offset + 6] = int(dir == 180 or dir == 270)
+        input[offset + 7] = int(dir == 90 or dir == 270)
+
+
     def act(self, new_state, reward, done, is_training=False):
+        input = [0] * 24
+
+        self._add_input_for_entity(input, new_state[1][1], 0)
+        self._add_input_for_entity(input, new_state[1][0], 8)
+        self._add_input_for_entity(input, new_state[1][2], 16)
 
         # select the next action
-        y = self._model.evaluate(new_state)
+        y = self._model.evaluate([input])
         new_action = np.argmax(y>0.5)
 
         self._actions_taken += 1
@@ -143,7 +166,6 @@ class FocusedAgent(AStarAgent):
         self._action_list = []
 
     def act(self, state, reward, done, is_training=False):
-        time.sleep(2)
         if done:
             self._action_list = []
             self._previous_target_pos = None
