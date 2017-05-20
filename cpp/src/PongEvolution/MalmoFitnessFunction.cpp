@@ -28,7 +28,7 @@ std::map<const LightBulb::AbstractIndividual*, double>* MalmoFitnessFunction::ex
 			{
 				if (rewardCounter[resultsPerCombination->first][result->first] > 0)
 				{
-					(*fitnessValues)[resultsPerIndividual->first] += result->second;// *1.0 / rewardCounter[resultsPerCombination->first][result->first];
+					(*fitnessValues)[resultsPerIndividual->first] += result->second *1.0 / rewardCounter[resultsPerCombination->first][result->first];
 				}
 			}
 		}

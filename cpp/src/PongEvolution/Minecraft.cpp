@@ -115,6 +115,7 @@ int Minecraft::simulateGame(Agent& ai1, Agent& ai2, int startPlayer)
 	std::vector<int> rewards = {0, 0};
 	int noPosDirChangesInRow = 0;
 	int noPosChangesInRow = 0;
+	stepCounter = 0;
 
 	for (int t = 0; t < 50; t++)
 	{
@@ -123,6 +124,9 @@ int Minecraft::simulateGame(Agent& ai1, Agent& ai2, int startPlayer)
 		Location prevLocation = currentAgent.getLocation();
 		currentAgent.doNNCalculation();
 		rewards[currentPlayer] += getReward(currentAgent);
+
+		if (currentPlayer == 0)
+			stepCounter++;
 
 		if (prevLocation.x == currentAgent.getLocation().x && prevLocation.y == currentAgent.getLocation().y)
 		{
@@ -133,6 +137,7 @@ int Minecraft::simulateGame(Agent& ai1, Agent& ai2, int startPlayer)
 			noPosChangesInRow++;
 			if (noPosDirChangesInRow >= 2 || noPosChangesInRow >= 8)
 			{
+				stepCounter = 25;
 				rewards = { -25, -25 };
 				break;
 			}
@@ -154,7 +159,7 @@ int Minecraft::simulateGame(Agent& ai1, Agent& ai2, int startPlayer)
 		if (isDone(ai1, ai2, currentPlayer, startPlayer))
 			break;
 	}
-
+	
 	if (isPigCaught())
 		rewards[currentPlayer] += 25;
 
@@ -192,14 +197,16 @@ int Minecraft::rateIndividual(AbstractIndividual& individual)
 	{
 		Agent parasite(*options, *this, true);
 		int rewards = 0;
+		int steps = 0;
 
 		for (int i = 0; i < 100; i++)
 		{
 			parasite.randomizeState();
 			rewards += simulateGame(static_cast<Agent&>(individual), parasite, getRandomGenerator().randInt(0, 1));
+			steps += stepCounter;
 		}
 
-		learningState->addData(DATASET_CHALLENGE, rewards / 100.0);
+		learningState->addData(DATASET_CHALLENGE, rewards / (float)steps);
 	}
 
 
@@ -219,6 +226,15 @@ bool Minecraft::isPigCaught()
 bool Minecraft::isFieldBlockedForPig(int x, int y)
 {
 	return !isFieldAllowed(x, y) || (currentAi1->getLocation().x == x && currentAi1->getLocation().y + 1 == y) || (currentAi2->getLocation().x == x && currentAi2->getLocation().y + 1 == y);
+}
+
+void Minecraft::agentMovedTo(int x, int y, int dx, int dy)
+{
+	if (pig.x == x && pig.y == y && !isFieldBlockedForPig(x + dx, y + dy + 1))
+	{
+		pig.x += dx;
+		pig.y += dy;
+	}
 }
 
 void Minecraft::startNewGame(Agent& ai1, Agent& ai2)
@@ -378,7 +394,7 @@ void Minecraft::setBlock(std::vector<double>& input, int x, int y, int dir, int 
 
 int Minecraft::getReward(Agent &agent)
 {
-	return -1 + (isPigCaught() ? 25 : 0) +(fields[agent.getLocation().x][agent.getLocation().y + 1] == 2 ? 5 : 0);
+	return -1 + (isPigCaught() ? 25 : 0) +(fields[agent.getLocation().x][agent.getLocation().y + 1] == 2 && (isParasiteEnvironment() && currentAi1->getIsStupid() || !isParasiteEnvironment() && currentAi2->getIsStupid()) ? 5 : 0);
 }
 
 bool Minecraft::isFieldAllowed(int x, int y, bool allowLapis)

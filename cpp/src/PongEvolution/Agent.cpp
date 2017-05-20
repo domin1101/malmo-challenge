@@ -70,6 +70,7 @@ bool Agent::doStep(Location& location)
 		nextX++;
 	if (currentGame->isFieldAllowed(nextX, nextY + 1))
 	{
+		currentGame->agentMovedTo(nextX, nextY, nextX - location.x, nextY - location.y);
 		location.x = nextX;
 		location.y = nextY;
 		return true;

@@ -42,6 +42,7 @@ private:
 	int totalReward;
 	int matchCount;
 	bool isInteresting;
+	int stepCounter;
 	Location pig;
 	LightBulb::AbstractIndividual* lastBestIndividual;
 protected:
@@ -57,6 +58,7 @@ public:
 	int getRoundCount() const override;
 
 	bool isFieldBlockedForPig(int x, int y);
+	void agentMovedTo(int x, int y, int dx, int dy);
 	void startNewGame(Agent &ai1, Agent &ai2);
 	void getNNInputFull(std::vector<double>& input);
 
