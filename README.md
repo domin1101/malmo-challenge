@@ -110,3 +110,47 @@ We provide you a [leaderboard website](https://malmo-leaderboard.azurewebsites.n
 - [CNTK Documentation](https://github.com/Microsoft/CNTK/wiki)
 - [Chainer Documentation](http://docs.chainer.org/en/stable/)
 - [TensorBoard Documentation](https://www.tensorflow.org/get_started/summaries_and_tensorboard)
+
+## Short description
+
+My approach for solving this challenge was to use Coevolution. In the core coevolution acts like evolutionary algorithms, but instead of using just one population of individuals coevolution uses two. One is called "parasites" and the other just "population". For the Malmo challenge I used the parasites to setup the environment. So their goal is to find starting positions for the agents and the pig which resolve in a very hard challenge. The other population now tries to get as much rewards as possible out of those given envirnments (This is also the population where the final agent comes from). Both populations execute alternating a standard evolutionary algorithm (selection, mutation, recombination etc.). In the optimal case both population process slowly, but steady to achieve more and more rewards and the in the end you hopefully get an agent which has been tested against all kinds of environment constellations.
+
+## Advantages of the algorithm
+
+## Evolutionary algorithm per population
+
+Every populations runs the same algorithm which has the following main steps:
+
+### Creation
+
+At first a few new individuals are created with random parameters.
+
+### Mutation & Recombination
+
+Now the best individuals from the last iteration are mutated and combined to create new individuals which base on good existing ones.
+
+### Evaluation
+
+Then all individuals play a few matches against a subset of the best agents from the other population.
+
+### Selection
+
+After that, the best ones are selected and the other ones get deleted. Now the algorithm starts again from the top.
+
+## Fitness values
+
+
+## Stabilisation
+
+The algorithm desribed above would not work in this way as it would be to unstable. To keep up diversity in the populations and to make sure not to remove individuals which do not have the best total score, but which can win against rarly beaten opponents, i used "Competitive Fitness Sharing" and "Shared Sampling". Those method keep sure to reward individuals which seem to have unique abilities.
+
+## Speedup
+
+Those evolutionary process require that a few million matches are being played. Though the algorithm is highly paralizable I had to speedup learning process as my computer does not have the required capabilities ;). So I created a mocking environment which does not use socket communication and used my little ML framework "LightBulb" for neural networks and the learning process. In constrast to e.q. Tensorflow LightBulb is optimized for fast executing small neural networks which also gave me huge speedup.
+Also to keep the network small i used only a few input parameters: position and direction of both agents and the pig in binary form.
+
+## Results
+
+At the end I didn't had enough time to do much hyperparameter optimization and do try bigger neural networks, but at least I got an agent which at first tries to chase the pig in cooperation with the oppenent and the if that is not possible, uses the lapis exit.
+
+## Future
