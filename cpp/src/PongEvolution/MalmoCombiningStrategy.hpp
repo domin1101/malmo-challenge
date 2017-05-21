@@ -19,7 +19,7 @@ class MalmoCombiningStrategy : public LightBulb::SharedSamplingCombiningStrategy
 	friend void serialize(Archive& archive, MalmoCombiningStrategy& sharedSamplingCombiningStrategy);
 private:
 	std::unique_ptr<MalmoCombiningResults> results;
-	Eigen::VectorXd matchResults;
+	Eigen::VectorXi matchResults;
 protected:
 	void combine(LightBulb::AbstractCoevolutionEnvironment& simulationEnvironment, std::vector<LightBulb::AbstractIndividual*>& firstIndividuals, std::vector<LightBulb::AbstractIndividual*>& secondIndividuals) override;
 	// Inherited:

@@ -108,7 +108,7 @@ AbstractEvolutionEnvironment* MalmoEvolution::createEnvironment()
 {
 	cs1 = new MalmoCombiningStrategy(getIntegerPreference(PREFERENCE_COMPETITIONS_SIZE));
 
-	FeedForwardNetworkTopologyOptions options = getNetworkOptions(24);
+	FeedForwardNetworkTopologyOptions options = getNetworkOptions(32);
 	Minecraft* pong1 = new Minecraft(options, false, cs1, new MalmoFitnessFunction(), &hof1, &hof2, getIntegerPreference(PREFERENCE_COMPETITVE_PUNISHMENT));
 
 	cs1->setSecondEnvironment(static_cast<Minecraft&>(*parasiteEnvironment.get()));

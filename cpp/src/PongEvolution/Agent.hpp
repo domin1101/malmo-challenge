@@ -41,6 +41,7 @@ protected:
 	std::vector<std::pair<int, Location>> openlist;
 	Minecraft* currentGame;
 	Location location;
+	Location prevLocation;
 	Location popStartLocation;
 	Location parStartLocation;
 	Location pigStartLocation;
@@ -63,6 +64,7 @@ public:
 	bool getIsStupid() const;
 	void setIsStupid(bool isStupid);
 	const Location& getLocation() const;
+	const Location& getPrevLocation() const;
 	const Location& getPopStartLocation() const;
 	const Location& getParStartLocation() const;
 	void setLocation(Location location);
@@ -72,6 +74,7 @@ public:
 	void setParStartLocation(Location parStartLocation);
 	void copyPropertiesFrom(AbstractIndividual& notUsedIndividual) override;
 	void randomizeState();
+	void resetNN() override;
 };
 
 #include "AgentIO.hpp"

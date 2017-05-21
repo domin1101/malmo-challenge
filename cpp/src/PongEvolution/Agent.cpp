@@ -29,6 +29,14 @@ void Agent::randomizeState()
 	isStupid = currentGame->getRandomGenerator().randDouble() < 0.25;
 }
 
+void Agent::resetNN()
+{
+	LightBulb::AbstractDefaultIndividual::resetNN();
+	prevLocation.x = 0;
+	prevLocation.y = 0;
+	prevLocation.dir = 0;
+}
+
 
 bool Agent::isValidStartConstelation(const Location& popStartLocation, const Location& parStartLocation, const Location& pigStartLocation)
 {
@@ -92,6 +100,12 @@ void Agent::turnRight(Location& location)
 	location.dir %= 360;
 }
 
+
+const Location& Agent::getPrevLocation() const
+{
+	return prevLocation;
+}
+
 void Agent::interpretNNOutput(std::vector<double>& output)
 {
 	if (false && isParasite)
@@ -140,11 +154,12 @@ void Agent::interpretNNOutput(std::vector<double>& output)
 
 void Agent::doNNCalculation()
 {
+	prevLocation = location;
 	if (!isParasite)
 		LightBulb::AbstractDefaultIndividual::doNNCalculation();
 	else
 	{
-		if (isStupid)
+		if (false && isStupid)
 		{
 			int action = currentGame->getRandomGenerator().randInt(0, 2);
 			if (action == 0)
@@ -163,7 +178,8 @@ void Agent::doNNCalculation()
 			return;
 		}
 
-		auto& cache = static_cast<Minecraft*>(environment)->getAStarCache();
+		static std::vector<std::pair<int, Location>> openlist;
+		static std::map<Location, std::map<Location, int>> cache;
 
 		if (cache[location][pig] != 0)
 		{

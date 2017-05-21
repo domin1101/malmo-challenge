@@ -132,7 +132,7 @@ int Minecraft::simulateGame(Agent& ai1, Agent& ai2, int startPlayer)
 		currentAgent.doNNCalculation();
 		rewards[currentPlayer] += getReward(currentAgent);
 
-		if (currentPlayer == 0)
+		if (currentPlayer == 0 && !isParasiteEnvironment() || currentPlayer == 1 && isParasiteEnvironment())
 			stepCounter++;
 
 		if (prevLocation.x == currentAgent.getLocation().x && prevLocation.y == currentAgent.getLocation().y)
@@ -364,22 +364,27 @@ void Minecraft::setInputForAgent(std::vector<double>& input, int x, int y, int d
 void Minecraft::getNNInput(std::vector<double>& input)
 {
 	bool isParasite = currentPlayer == 0 && isParasiteEnvironment() || currentPlayer == 1 && !isParasiteEnvironment();
-	input.resize(isParasite ? 16 : 24, 0);
+	input.resize(isParasite ? 16 : 32, 0);
 
 	if (currentPlayer == 0)
 	{
 		setInputForAgent(input, pig.x, pig.y + 1, 0, 0);
 		setInputForAgent(input, currentAi1->getLocation().x, currentAi1->getLocation().y + 1, currentAi1->getLocation().dir, 8);
 		if (!isParasite)
+		{
 			setInputForAgent(input, currentAi2->getLocation().x, currentAi2->getLocation().y + 1, currentAi2->getLocation().dir, 16);
-			
+			setInputForAgent(input, currentAi2->getPrevLocation().x, currentAi2->getPrevLocation().y + 1, currentAi2->getPrevLocation().dir, 24);
+		}
 	}
 	else
 	{
 		setInputForAgent(input, pig.x, pig.y + 1, 0, 0);
 		setInputForAgent(input, currentAi2->getLocation().x, currentAi2->getLocation().y + 1, currentAi2->getLocation().dir, 8);
 		if (!isParasite)
+		{
 			setInputForAgent(input, currentAi1->getLocation().x, currentAi1->getLocation().y + 1, currentAi1->getLocation().dir, 16);
+			setInputForAgent(input, currentAi1->getPrevLocation().x, currentAi1->getPrevLocation().y + 1, currentAi1->getPrevLocation().dir, 24);
+		}
 	}
 }
 
@@ -429,7 +434,7 @@ void Minecraft::setBlock(std::vector<double>& input, int x, int y, int dir, int 
 int Minecraft::getReward(Agent &agent)
 {
 	bool parasiteIsStupid = (isParasiteEnvironment() && currentAi1->getIsStupid() || !isParasiteEnvironment() && currentAi2->getIsStupid());
-	return -1 + (isPigCaught() ? 25 : 0) + (fields[agent.getLocation().x][agent.getLocation().y + 1] == 2 && parasiteIsStupid ? 5 : 0) + (fields[agent.getLocation().x][agent.getLocation().y + 1] == 2 && !parasiteIsStupid && !inRating ? competitivePunishement : 0);
+	return -1 + (isPigCaught() ? 25 : 0) + (fields[agent.getLocation().x][agent.getLocation().y + 1] == 2 ? 5 : 0);// + (fields[agent.getLocation().x][agent.getLocation().y + 1] == 2 && !parasiteIsStupid && !inRating ? competitivePunishement : 0);
 }
 
 bool Minecraft::isFieldAllowed(int x, int y, bool allowLapis)
