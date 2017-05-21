@@ -38,6 +38,7 @@ class Agent : public LightBulb::AbstractDefaultIndividual
 	template <class Archive>
 	friend void load(Archive& archive, Agent& agent);
 protected:
+	std::vector<std::pair<int, Location>> openlist;
 	Minecraft* currentGame;
 	Location location;
 	Location popStartLocation;

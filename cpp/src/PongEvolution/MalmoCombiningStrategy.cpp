@@ -2,6 +2,7 @@
 #include "MalmoCombiningStrategy.hpp"
 #include "LightBulb/Learning/Evolution/AbstractIndividual.hpp"
 #include "LightBulb/Learning/Evolution/AbstractCoevolutionEnvironment.hpp"
+#include "Minecraft.hpp"
 //Library includes
 
 
@@ -61,13 +62,13 @@ void MalmoCombiningStrategy::executeSample(class LightBulb::AbstractCoevolutionE
 			{
 				int index = 0;
 				for (auto firstPlayer = firstIndividuals.begin(); firstPlayer != firstIndividuals.end(); firstPlayer++)
-					matchResults[index++] = simulationEnvironment.compareIndividuals(**firstPlayer, **secondPlayer, r);
+					matchResults[index++] = simulationEnvironment.compareIndividuals(**firstPlayer, **secondPlayer, r) / (double)static_cast<Minecraft&>(simulationEnvironment).getStepCounter();
 
 				int max = matchResults.maxCoeff();
 				index = 0;
 				for (auto firstPlayer = firstIndividuals.begin(); firstPlayer != firstIndividuals.end(); firstPlayer++)
 				{
-					setResult(**firstPlayer, **secondPlayer, r, matchResults[index] > 0, (matchResults[index] + 25) / 50.0);
+					setResult(**firstPlayer, **secondPlayer, r, matchResults[index] > 0, (matchResults[index] + 1) / 25.0);
 					index++;
 				}
 			}
@@ -88,7 +89,7 @@ void MalmoCombiningStrategy::executeSample(class LightBulb::AbstractCoevolutionE
 				index = 0;
 				for (auto secondPlayer = sample.begin(); secondPlayer != sample.end(); secondPlayer++)
 				{
-					setResult(**firstPlayer, **secondPlayer, r, matchResults[index] < 0, (max - matchResults[index]) / 50.0);
+					setResult(**firstPlayer, **secondPlayer, r, matchResults[index] < 0, (max - matchResults[index]) / 25.0);
 					index++;
 				}
 			}

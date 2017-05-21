@@ -25,16 +25,21 @@ std::vector<std::string> Minecraft::getDataSetLabels() const
 	labels.push_back(std::string(parasiteEnvironment ? DATASET_PARASITE_PREFIX : "") + DATASET_BEST_REWARD);
 	labels.push_back(std::string(parasiteEnvironment ? DATASET_PARASITE_PREFIX : "") + DATASET_AVG_MUT_STRENGTH);
 	if (!parasiteEnvironment)
+	{
 		labels.push_back(DATASET_CHALLENGE);
+		labels.push_back(DATASET_LAPIS_ENDINGS);
+		labels.push_back(DATASET_CAUGHT_ENDINGS);
+	}
 	return labels;
 }
 
 
-Minecraft::Minecraft(FeedForwardNetworkTopologyOptions& options_, bool isParasiteEnvironment_, AbstractCombiningStrategy* combiningStrategy_, AbstractCoevolutionFitnessFunction* fitnessFunction_, const std::shared_ptr<LightBulb::AbstractHallOfFameAlgorithm>* hallOfFameToAddAlgorithm_, const std::shared_ptr<LightBulb::AbstractHallOfFameAlgorithm>* hallOfFameToChallengeAlgorithm_)
+Minecraft::Minecraft(FeedForwardNetworkTopologyOptions& options_, bool isParasiteEnvironment_, AbstractCombiningStrategy* combiningStrategy_, AbstractCoevolutionFitnessFunction* fitnessFunction_, const std::shared_ptr<LightBulb::AbstractHallOfFameAlgorithm>* hallOfFameToAddAlgorithm_, const std::shared_ptr<LightBulb::AbstractHallOfFameAlgorithm>* hallOfFameToChallengeAlgorithm_, int competitivePunishement_)
 	: AbstractCoevolutionEnvironment(isParasiteEnvironment_, combiningStrategy_, fitnessFunction_, hallOfFameToAddAlgorithm_, hallOfFameToChallengeAlgorithm_)
 {
 	options.reset(new FeedForwardNetworkTopologyOptions(options_));
 	fields.resize(FIELD_SIZE, std::vector<int>(FIELD_SIZE, 0));
+	competitivePunishement = competitivePunishement_;
 	
 	fields[2][2] = 1;
 	fields[3][2] = 1;
@@ -73,6 +78,7 @@ Minecraft::Minecraft(FeedForwardNetworkTopologyOptions& options_, bool isParasit
 	totalReward = 0;
 	matchCount = 0;
 	lastBestIndividual = nullptr;
+	inRating = false;
 }
 
 int Minecraft::doCompare(AbstractIndividual& obj1, AbstractIndividual& obj2, int round)
@@ -116,6 +122,7 @@ int Minecraft::simulateGame(Agent& ai1, Agent& ai2, int startPlayer)
 	int noPosDirChangesInRow = 0;
 	int noPosChangesInRow = 0;
 	stepCounter = 0;
+	lastEnding = TIMEOUT;
 
 	for (int t = 0; t < 50; t++)
 	{
@@ -157,11 +164,18 @@ int Minecraft::simulateGame(Agent& ai1, Agent& ai2, int startPlayer)
 		}
 
 		if (isDone(ai1, ai2, currentPlayer, startPlayer))
+		{
+			lastEnding = LAPIS;
 			break;
+		}
 	}
 	
 	if (isPigCaught())
+	{
+		lastEnding = CAUGHT;
 		rewards[currentPlayer] += 25;
+	}
+
 
 	bestReward = std::max(bestReward, rewards[0]);
 	totalReward += rewards[0];
@@ -195,22 +209,37 @@ int Minecraft::rateIndividual(AbstractIndividual& individual)
 
 	if (!isParasiteEnvironment())
 	{
+		inRating = true;
 		Agent parasite(*options, *this, true);
 		int rewards = 0;
 		int steps = 0;
+		int lapisEndings = 0;
+		int caughtEndings = 0;
 
 		for (int i = 0; i < 100; i++)
 		{
 			parasite.randomizeState();
 			rewards += simulateGame(static_cast<Agent&>(individual), parasite, getRandomGenerator().randInt(0, 1));
 			steps += stepCounter;
+			if (lastEnding == CAUGHT)
+				caughtEndings++;
+			else if (lastEnding == LAPIS)
+				lapisEndings++;
 		}
 
 		learningState->addData(DATASET_CHALLENGE, rewards / (float)steps);
+		learningState->addData(DATASET_LAPIS_ENDINGS, lapisEndings / 100.0);
+		learningState->addData(DATASET_CAUGHT_ENDINGS, caughtEndings / 100.0);
+		inRating = false;
 	}
 
 
 	return 0;
+}
+
+int Minecraft::getStepCounter() const
+{
+	return stepCounter;
 }
 
 bool Minecraft::isDone(Agent& ai1, Agent& ai2, int currentPlayer, int startPlayer)
@@ -312,6 +341,11 @@ void Minecraft::getNNInputFull(std::vector<double>& input)
 	std::for_each(input.begin(), input.end(), [](double &n){ n /= 255; });
 }
 
+std::map<Location, std::map<Location, int>>& Minecraft::getAStarCache()
+{
+	return aStarCache;
+}
+
 
 void Minecraft::setInputForAgent(std::vector<double>& input, int x, int y, int dir, int offset)
 {
@@ -394,7 +428,8 @@ void Minecraft::setBlock(std::vector<double>& input, int x, int y, int dir, int 
 
 int Minecraft::getReward(Agent &agent)
 {
-	return -1 + (isPigCaught() ? 25 : 0) +(fields[agent.getLocation().x][agent.getLocation().y + 1] == 2 && (isParasiteEnvironment() && currentAi1->getIsStupid() || !isParasiteEnvironment() && currentAi2->getIsStupid()) ? 5 : 0);
+	bool parasiteIsStupid = (isParasiteEnvironment() && currentAi1->getIsStupid() || !isParasiteEnvironment() && currentAi2->getIsStupid());
+	return -1 + (isPigCaught() ? 25 : 0) + (fields[agent.getLocation().x][agent.getLocation().y + 1] == 2 && parasiteIsStupid ? 5 : 0) + (fields[agent.getLocation().x][agent.getLocation().y + 1] == 2 && !parasiteIsStupid && !inRating ? competitivePunishement : 0);
 }
 
 bool Minecraft::isFieldAllowed(int x, int y, bool allowLapis)

@@ -46,6 +46,7 @@
 #define PREFERENCE_MUTATIONSTRENGTH_CHANGESPEED "Mutationstrength changespeed"
 #define PREFERENCE_WEIGHTDECAY_FAC "Weight decay fac"
 #define PREFERENCE_CREATE_UP_TO "Create up to"
+#define PREFERENCE_COMPETITVE_PUNISHMENT "Competitive punishment"
 
 using namespace LightBulb;
 
@@ -55,7 +56,6 @@ AbstractLearningRule* MalmoEvolution::createLearningRate()
 	EvolutionLearningRuleOptions options;
 	
 	options.creationCommands.push_back(new ConstantCreationCommand(getIntegerPreference(PREFERENCE_CREATE_UP_TO)));
-	//options.exitConditions.push_back(new PerfectIndividualFoundCondition(1000));
 	options.reuseCommands.push_back(new ConstantReuseCommand(new BestReuseSelector(), 1));
 	options.selectionCommands.push_back(new BestSelectionCommand(getIntegerPreference(PREFERENCE_POPULATION_SIZE)));
 	options.mutationsCommands.push_back(new ConstantMutationCommand(new AgentMutationAlgorithm(getDoublePreference(PREFERENCE_MUTATIONSTRENGTH_CHANGESPEED), 1), new RandomSelector(new RankBasedRandomFunction()), getDoublePreference(PREFERENCE_MUTATION_PERCENTAGE)));
@@ -82,7 +82,7 @@ AbstractLearningRule* MalmoEvolution::createLearningRate()
 	CoevolutionLearningRuleOptions coevolutionLearningRuleOptions;
 	coevolutionLearningRuleOptions.learningRule1 = learningRule1;
 	coevolutionLearningRuleOptions.learningRule2 = learningRule2;
-	coevolutionLearningRuleOptions.maxIterationsPerTry = 1000000;
+	//coevolutionLearningRuleOptions.maxIterationsPerTry = 1300;
 	fillDefaultLearningRuleOptions(coevolutionLearningRuleOptions);
 
 	return new CoevolutionLearningRule(coevolutionLearningRuleOptions);
@@ -109,7 +109,7 @@ AbstractEvolutionEnvironment* MalmoEvolution::createEnvironment()
 	cs1 = new MalmoCombiningStrategy(getIntegerPreference(PREFERENCE_COMPETITIONS_SIZE));
 
 	FeedForwardNetworkTopologyOptions options = getNetworkOptions(24);
-	Minecraft* pong1 = new Minecraft(options, false, cs1, new MalmoFitnessFunction(), &hof1, &hof2);
+	Minecraft* pong1 = new Minecraft(options, false, cs1, new MalmoFitnessFunction(), &hof1, &hof2, getIntegerPreference(PREFERENCE_COMPETITVE_PUNISHMENT));
 
 	cs1->setSecondEnvironment(static_cast<Minecraft&>(*parasiteEnvironment.get()));
 	cs2->setSecondEnvironment(*pong1);
@@ -126,7 +126,7 @@ AbstractEvolutionEnvironment* MalmoEvolution::createParasiteEnvironment()
 	hof2.reset(new RandomHallOfFameAlgorithm(getIntegerPreference(PREFERENCE_HALLOFFAME_COMPETITIONS_SIZE)));
 
 	FeedForwardNetworkTopologyOptions options = getNetworkOptions(16);
-	return new Minecraft(options, true, cs2, new MalmoFitnessFunction(), &hof2, &hof1);
+	return new Minecraft(options, true, cs2, new MalmoFitnessFunction(), &hof2, &hof1, getIntegerPreference(PREFERENCE_COMPETITVE_PUNISHMENT));
 }
 
 MalmoEvolution::MalmoEvolution()
@@ -145,6 +145,7 @@ MalmoEvolution::MalmoEvolution()
 	addPreference(new IntegerPreference(PREFERENCE_NEURON_COUNT_SECOND_LAYER, 32, 1, 30));
 	addPreference(new DoublePreference(PREFERENCE_MUTATIONSTRENGTH_CHANGESPEED, 1.6, 0, 2)); // 1.6, simple
 	addPreference(new DoublePreference(PREFERENCE_WEIGHTDECAY_FAC, 0, 0.003, 0.3));
+	addPreference(new IntegerPreference(PREFERENCE_COMPETITVE_PUNISHMENT, 0, -25, 0));
 }
 
 std::string MalmoEvolution::getOriginalName() const

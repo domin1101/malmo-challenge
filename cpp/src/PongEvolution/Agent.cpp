@@ -163,8 +163,7 @@ void Agent::doNNCalculation()
 			return;
 		}
 
-		static std::vector<std::pair<int, Location>> openlist;
-		static std::map<Location, std::map<Location, int>> cache;
+		auto& cache = static_cast<Minecraft*>(environment)->getAStarCache();
 
 		if (cache[location][pig] != 0)
 		{

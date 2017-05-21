@@ -23,10 +23,19 @@ class AbstractTile;
 #define DATASET_BEST_REWARD "Best reward"
 #define DATASET_AVG_MUT_STRENGTH "Average mutation strength"
 #define DATASET_CHALLENGE "Challenge performance"
+#define DATASET_LAPIS_ENDINGS "Lapis endings"
+#define DATASET_CAUGHT_ENDINGS "Caught endings"
 
 enum MinecraftEvents
 {
 	EVT_FIELD_CHANGED
+};
+
+enum Ending
+{
+	TIMEOUT,
+	CAUGHT,
+	LAPIS
 };
 
 class Minecraft : public LightBulb::AbstractCoevolutionEnvironment, public LightBulb::Observable<MinecraftEvents, Minecraft>
@@ -43,15 +52,19 @@ private:
 	int matchCount;
 	bool isInteresting;
 	int stepCounter;
+	bool inRating;
+	int lastEnding;
 	Location pig;
+	int competitivePunishement;
 	LightBulb::AbstractIndividual* lastBestIndividual;
+	std::map<Location, std::map<Location, int>> aStarCache;
 protected:
 	LightBulb::AbstractIndividual* createNewIndividual() override;
 	int simulateGame(Agent& ai1, Agent& ai2, int startPlayer);
 	std::unique_ptr<LightBulb::FeedForwardNetworkTopologyOptions> options;
 	int doCompare(LightBulb::AbstractIndividual& obj1, LightBulb::AbstractIndividual& obj2, int round) override;
 public:
-	Minecraft(LightBulb::FeedForwardNetworkTopologyOptions& options_, bool isParasiteEnvironment, LightBulb::AbstractCombiningStrategy* combiningStrategy_, LightBulb::AbstractCoevolutionFitnessFunction* fitnessFunction_, const std::shared_ptr<LightBulb::AbstractHallOfFameAlgorithm>* hallOfFameToAddAlgorithm_ = nullptr, const std::shared_ptr<LightBulb::AbstractHallOfFameAlgorithm>* hallOfFameToChallengeAlgorithm_ = nullptr);
+	Minecraft(LightBulb::FeedForwardNetworkTopologyOptions& options_, bool isParasiteEnvironment, LightBulb::AbstractCombiningStrategy* combiningStrategy_, LightBulb::AbstractCoevolutionFitnessFunction* fitnessFunction_, const std::shared_ptr<LightBulb::AbstractHallOfFameAlgorithm>* hallOfFameToAddAlgorithm_ = nullptr, const std::shared_ptr<LightBulb::AbstractHallOfFameAlgorithm>* hallOfFameToChallengeAlgorithm_ = nullptr, int competitivePunishement_ = 0);
 	Minecraft() = default;
 	void setInputForAgent(std::vector<double>& input, int x, int y, int dir, int offset);
 	void getNNInput(std::vector<double>& sight);
@@ -61,6 +74,7 @@ public:
 	void agentMovedTo(int x, int y, int dx, int dy);
 	void startNewGame(Agent &ai1, Agent &ai2);
 	void getNNInputFull(std::vector<double>& input);
+	std::map<Location, std::map<Location, int>>& getAStarCache();
 
 	int getReward(Agent &agent);
 
@@ -83,6 +97,7 @@ public:
 	std::vector<std::string> getDataSetLabels() const;
 
 	int rateIndividual(LightBulb::AbstractIndividual &individual);
+	int getStepCounter() const;
 };
 
 USE_EXISTING_PARENT_SERIALIZATION_WITHOUT_NAMESPACE(Minecraft, LightBulb::AbstractCoevolutionEnvironment, LightBulb::AbstractEvolutionEnvironment);
