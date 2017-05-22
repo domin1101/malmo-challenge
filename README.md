@@ -83,7 +83,10 @@ agent = EvolutionAgent(ENV_AGENT_NAMES[1], 3, model)
 ```
 
 Video - Here you can see a video of my agent playing against the ChallengeAgent:
+
 https://www.youtube.com/watch?v=0njImwKbvbQ
+
+(You can see my agent on the left side)
 
 ## Future
 
