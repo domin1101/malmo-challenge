@@ -1,8 +1,8 @@
 # Coevolution - Malmo Collaborative AI Challenge
 
-Teamname: Pathfinder
-Strategy: Coevolution
-Frameworks: LightBulb(Training) and Tensorflow(Evaluation)
+* Teamname: Pathfinder
+* Strategy: Coevolution
+* Frameworks: LightBulb(Training) and Tensorflow(Evaluation)
 
 ## Short description
 
@@ -59,7 +59,7 @@ At the end I didn't had enough time to do much hyperparameter optimization and t
 ### Agent details:
 
 * Network structure: 32 - 64 - 3
-* Trained for 8000 iterations 
+* Trained for 8000 iterations (> 100 million matches) 
 * Tensorflow required
 
 Results (100k and 500k are the same agents):
