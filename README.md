@@ -45,16 +45,16 @@ Parasites: Here comes the trick: Difference between maximum opponent reward and 
 
 ## Stabilization
 
-The algorithm described above would not work in this way as it would be to unstable. To keep up diversity in the populations and to make sure not to remove individuals which do not have the best total score, but which can win against rarely beaten opponents, i used "Competitive Fitness Sharing" and "Shared Sampling". Those methods keep sure to reward individuals which seem to have unique abilities. As the original algorithms do not work with rewards, but just with the information which player won the game, I had to adjust the original algorithms to also make use the information given by different rewards.
+The algorithm described above would not work in this way as it would be to unstable. To keep up diversity in the populations and to make sure not to remove individuals which do not have the best total score, but which can win against rarely beaten opponents, i used ["Competitive Fitness Sharing" and "Shared Sampling"](http://www.sci.brooklyn.cuny.edu/~sklar/teaching/f05/alife/papers/rosin-96coev.pdf). Those methods keep sure to reward individuals which seem to have unique abilities. As the original algorithms do not work with rewards, but just with the information which player won the game, I had to adjust the original algorithms to also make use the information given by different rewards.
 
 ## Speedup
 
-Those evolutionary processes require that a few million matches are being played. I had to speedup learning process as my computer does not have the required capabilities to run the algorithm highly parallelized ;). So I created a mocking environment which does not use socket communication and used my little ML framework "LightBulb" for neural networks and the learning process. In contrast to e.q. Tensorflow LightBulb is optimized for fast executing small neural networks on CPUs which also gave me a huge speedup.
+Those evolutionary processes require that a few million matches are being played. I had to speedup learning process as my computer does not have the required capabilities to run the algorithm highly parallelized ;). So I created a mocking environment which does not use socket communication and used my little ML framework "LightBulb" (v0.11) for neural networks and the learning process. In contrast to e.q. Tensorflow, LightBulb is optimized for fast executing small neural networks on CPUs which also gave a huge speedup.
 Also to keep the network small i used only a few input parameters: position and direction of both agents and the pig in binary form.
 
 ## Results
 
-At the end I didn't had enough time to do much hyperparameter optimization and to try bigger neural networks, but at least I got an agent which at first tries to chase the pig in cooperation with the opponent and then if that is not possible, uses the lapis exit.
+At the end I didn't had enough time to do much hyperparameter optimization and to try bigger neural networks, but at least I got an agent which at first tries to chase the pig in cooperation with the opponent and then, if that is not possible, uses the lapis exit. It was easy to create an agent which finds the fastest way to the exit and also one which always run to the pig. But it was very hard to find an agent which can do both. This is also the reason why the following agent was only trained against the FocusedAgent without random behaviours. So it is no suprise that my agent does not always acts that good. (Randomness is the engine of coevolution, but also its enemy)
 
 ### Agent details:
 
@@ -90,4 +90,4 @@ https://www.youtube.com/watch?v=0njImwKbvbQ
 
 ## Future
 
-I think this solution has more potential than the results may show. Especially when trying to train an agent to collaborate without having something like a challenge agent coevolution would be very interesting.
+I think this solution has more potential than the results may show. Especially, when trying to train an agent to collaborate without having something like a challenge agent, coevolution would be very interesting.
