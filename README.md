@@ -2,6 +2,7 @@
 
 Teamname: Pathfinder
 Strategy: Coevolution
+Frameworks: LightBulb(Training) and Tensorflow(Evaluation)
 
 ## Short description
 
@@ -59,10 +60,26 @@ At the end I didn't had enough time to do much hyperparameter optimization and t
 
 * Network structure: 32 - 64 - 3
 * Trained for 8000 iterations 
+* Tensorflow required
 
 Results (100k and 500k are the same agents):
 ```
 {"500k": {"var": 22.225563068538591, "count": 1383, "mean": -0.0057845263919016629}, "100k": {"var": 21.548280463682879, "count": 1378, "mean": -0.032656023222060959}, "experimentname": "My Exp 1"}
+```
+
+How to evaluate:
+```
+python ai_challenge/pig_chase/pig_chase_eval_evolution.py
+```
+
+How to use the agent in general (uses PigChaseSymbolicStateBuilder):
+```
+from model import MLPTensor, NeuralNetwork
+from agent import EvolutionAgent
+
+chain = MLPTensor("final_agent.json")
+model = NeuralNetwork(chain)
+agent = EvolutionAgent(ENV_AGENT_NAMES[1], 3, model)
 ```
 
 ## Future
