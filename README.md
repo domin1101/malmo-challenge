@@ -91,3 +91,6 @@ https://www.youtube.com/watch?v=0njImwKbvbQ
 ## Future
 
 I think this solution has more potential than the results may show. Especially, when trying to train an agent to collaborate without having something like a challenge agent, coevolution would be very interesting.
+
+
+Thank you for reading and thanks to the Malmo team for creating such an interesting challenge :)
