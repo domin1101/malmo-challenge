@@ -56,7 +56,7 @@ Also to keep the network small i used only a few input parameters: position and 
 
 At the end I didn't had enough time to do much hyperparameter optimization and to try bigger neural networks, but at least I got an agent which at first tries to chase the pig in cooperation with the opponent and then, if that is not possible, uses the lapis exit. It was easy to create an agent which finds the fastest way to the exit and also one which always run to the pig. But it was very hard to find an agent which can do both. This is also the reason why the following agent was only trained against the FocusedAgent without random behaviours. So it is no suprise that my agent does not always acts that good. (Randomness is the engine of coevolution, but also its enemy)
 
-### Agent details:
+## Agent details:
 
 * Network structure: 32 - 64 - 3
 * Trained for 8000 iterations (> 100 million matches) 
