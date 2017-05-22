@@ -1,121 +1,18 @@
-# The Malmo Collaborative AI Challenge
+# Coevolution - Malmo Collaborative AI Challenge
 
-This repository contains the task definition and example code for the [Malmo Collaborative AI Challenge](https://www.microsoft.com/en-us/research/academic-program/collaborative-ai-challenge/).
-This challenge is organized to encourage research in collaborative AI - to work towards AI agents 
-that learn to collaborate to solve problems and achieve goals. 
-You can find additional details, including terms and conditions, prizes and information on how to participate at the [Challenge Homepage](https://www.microsoft.com/en-us/research/academic-program/collaborative-ai-challenge/).
-
-[![Join the chat at https://gitter.im/malmo-challenge/Lobby](https://badges.gitter.im/malmo-challenge/Lobby.svg)](https://gitter.im/malmo-challenge/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![license](https://img.shields.io/github/license/mashape/apistatus.svg?maxAge=2592000)](https://github.com/Microsoft/malmo-challenge/blob/master/LICENSE)
-
-----
-
-**Notes for challenge participants:** Once you and your team decide to participate in the challenge, please make sure to register your team at our [Registration Page](https://www.surveygizmo.com/s3/3299773/The-Collaborative-AI-Challenge). On the registration form, you need to provide a link to the GitHub repository that will 
-contain your solution. We recommend that you fork this repository (<a href="https://help.github.com/articles/fork-a-repo/" target="_blank">learn how</a>), 
-and provide address of the forked repo. You can then update your submission as you make progress on the challenge task. 
-We will consider the version of the code on branch master at the time of the submission deadline as your challenge submission. Your submission needs to contain code in working order, a 1-page description of your approach, and a 1-minute video that shows off your agent. Please see the [challenge terms and conditions]() for further details.
-
-----
-
-**Jump to:**
-
-- [Installation](#installation)
-  - [Prerequisites](#prerequisites)
-  - [Minimal installation](#minimal-installation)
-  - [Optional extensions](#optional-extensions)
-
-- [Getting started](#getting-started)
-  - [Play the challenge task](#play-the-challenge-task)
-  - [Run your first experiment](#run-your-first-experiment)
-
-- [Next steps](#next-steps)
-  - [Run an experiment in Docker on Azure](#run-an-experiment-in-docker-on-azure)
-  - [Compare your results again other teams](#compare-your-results-against-other-teams)
-  - [Resources](#resources)
-
-# Installation
-
-## Prerequisites
-
-- [Python](https://www.python.org/) 2.7+ (recommended) or 3.5+
-- [Project Malmo](https://github.com/Microsoft/malmo) - we recommend downloading the [Malmo-0.21.0 release](https://github.com/Microsoft/malmo/releases) and installing dependencies for [Windows](https://github.com/Microsoft/malmo/blob/master/doc/install_windows.md), [Linux](https://github.com/Microsoft/malmo/blob/master/doc/install_linux.md) or [MacOS](https://github.com/Microsoft/malmo/blob/master/doc/install_macosx.md). Test your Malmo installation by [launching Minecraft with Malmo](https://github.com/Microsoft/malmo#launching-minecraft-with-our-mod) and [launching an agent](https://github.com/Microsoft/malmo#launch-an-agent).
-
-## Minimal installation
-
-```
-pip install -e git+https://github.com/Microsoft/malmo-challenge#egg=malmopy
-```
-
-or 
-
-```
-git clone https://github.com/Microsoft/malmo-challenge
-cd malmo-challenge
-pip install -e .
-```
-
-## Optional extensions
-
-Some of the example code uses additional dependencies to provide 'extra' functionality. These can be installed using:
-
-```
-pip install -e '.[extra1, extra2]'
-```
-For example to install gym and chainer:
-
-```
-pip install -e '.[gym]'
-```
-
-Or to install all extras:
-
-```
-pip install -e '.[all]'
-```
-
-The following extras are available:
-- `gym`: [OpenAI Gym](https://gym.openai.com/) is an interface to a wide range of reinforcement learning environments. Installing this extra enables the Atari example agents in [samples/atari](samples/atari) to train on the gym environments. *Note that OpenAI gym atari environments are currently not available on Windows.*
-- `tensorflow`: [TensorFlow](https://www.tensorflow.org/) is a popular deep learning framework developed by Google. In our examples it enables visualizations through [TensorBoard](https://www.tensorflow.org/get_started/summaries_and_tensorboard).
-
-
-# Getting started
-
-## Play the challenge task
-
-The challenge task takes the form of a mini game, called Pig Chase. Learn about the game, and try playing it yourself on our [Pig Chase Challenge page](ai_challenge/pig_chase/README.md).
-
-## Run your first experiment
-
-See how to [run your first baseline experiment](ai_challenge/pig_chase/README.md#run-your-first-experiment) on the [Pig Chase Challenge page](ai_challenge/pig_chase/README.md).
-
-# Next steps
-
-## Run an experiment in Docker on Azure
-
-Docker is a virtualization platform that makes it easy to deploy software with all its dependencies. 
-We use docker to run experiments locally or in the cloud. Details on how to run an example experiment using docker are in the [docker README](docker/README.md).
-
-## Compare your results against other teams:
-
-We provide you a [leaderboard website](https://malmo-leaderboard.azurewebsites.net/) where you can compare your results against the other participants.
-
-
-## Resources
-
-- [Malmo Platform Tutorial](https://github.com/Microsoft/malmo/blob/master/Malmo/samples/Python_examples/Tutorial.pdf)
-- [Azure Portal](portal.azure.com/)
-- [Docker Documentation](https://docs.docker.com/)
-- [Docker Machine on Azure](https://docs.microsoft.com/en-us/azure/virtual-machines/virtual-machines-linux-docker-machine)
-- [CNTK Tutorials](https://www.microsoft.com/en-us/research/product/cognitive-toolkit/tutorials/)
-- [CNTK Documentation](https://github.com/Microsoft/CNTK/wiki)
-- [Chainer Documentation](http://docs.chainer.org/en/stable/)
-- [TensorBoard Documentation](https://www.tensorflow.org/get_started/summaries_and_tensorboard)
+Teamname: Pathfinder
+Strategy: Coevolution
 
 ## Short description
 
-My approach for solving this challenge was to use Coevolution. In the core coevolution acts like evolutionary algorithms, but instead of using just one population of individuals coevolution uses two. One is called "parasites" and the other just "population". For the Malmo challenge I used the parasites to setup the environment. So their goal is to find starting positions for the agents and the pig which resolve in a very hard challenge. The other population now tries to get as much rewards as possible out of those given envirnments (This is also the population where the final agent comes from). Both populations execute alternating a standard evolutionary algorithm (selection, mutation, recombination etc.). In the optimal case both population process slowly, but steady to achieve more and more rewards and the in the end you hopefully get an agent which has been tested against all kinds of environment constellations.
+My approach for solving this challenge was to use coevolution. I know such algorithms are not used that often these days, but I think they can work really good especially in such two agents situations. In the core coevolution acts like evolutionary algorithms, but instead of using just one population of individuals coevolution uses two. One is called "parasites" and the other just "population". For the Malmo challenge I used the parasites to setup the environment. So their goal is to find starting positions for the agents and the pig which resolve in a very hard challenge. The other population now tries to get as much rewards as possible out of those given envirnments (This is also the population where the final agent comes from). Both populations execute alternating a standard evolutionary algorithm (selection, mutation, recombination etc.). In the optimal case both population process slowly, but steady to achieve more and more rewards and the in the end you hopefully get an agent which has been tested against all kinds of environment constellations.
 
 ## Advantages of the algorithm
+
+* Highly parallizable
+* No derivation required => Works with every type of network
+* Could also be usefull to train agents for collaborate with every kind of opponent (In my implementation the parasite is always the ChallengeAgent, but the parasite could theoratically also be guided by a neural network)
+* Less hyperparameters
 
 ## Evolutionary algorithm per population
 
@@ -139,10 +36,15 @@ After that, the best ones are selected and the other ones get deleted. Now the a
 
 ## Fitness values
 
+Fitness values are used to determine how good an agent is and to compare it with other agents. When using coevolution the calculation of the fitness values is one of the most important steps. In this szenario you cannot determine how good an agent was by just comparing its reward with the reward of its opponent, as this would not result in cooperation. In this case different fitness functions were necessary for parasites and non-parasites (They are calculated matchwise and then summarized over all matches of an agent):
+
+Non-Parasites: Just the own total reward in a match. The higher its rewards the better is an agent. This is also the goal in the Challenge itself.
+
+Parasites: This is the trick: Difference between maximum opponent reward and opponent reward in this match. In this way we reward parasites against which a high reward is possible, but currently not often achieved!
 
 ## Stabilisation
 
-The algorithm desribed above would not work in this way as it would be to unstable. To keep up diversity in the populations and to make sure not to remove individuals which do not have the best total score, but which can win against rarly beaten opponents, i used "Competitive Fitness Sharing" and "Shared Sampling". Those method keep sure to reward individuals which seem to have unique abilities.
+The algorithm desribed above would not work in this way as it would be to unstable. To keep up diversity in the populations and to make sure not to remove individuals which do not have the best total score, but which can win against rarly beaten opponents, i used "Competitive Fitness Sharing" and "Shared Sampling". Those methods keep sure to reward individuals which seem to have unique abilities.
 
 ## Speedup
 
@@ -151,6 +53,18 @@ Also to keep the network small i used only a few input parameters: position and 
 
 ## Results
 
-At the end I didn't had enough time to do much hyperparameter optimization and do try bigger neural networks, but at least I got an agent which at first tries to chase the pig in cooperation with the oppenent and the if that is not possible, uses the lapis exit.
+At the end I didn't had enough time to do much hyperparameter optimization and to try bigger neural networks, but at least I got an agent which at first tries to chase the pig in cooperation with the oppenent and then if that is not possible, uses the lapis exit.
+
+### Agent details:
+
+* Network structure: 32 - 64 - 3
+* Trained for 8000 iterations 
+
+Results (100k and 500k are the same agents):
+```
+{"500k": {"var": 22.225563068538591, "count": 1383, "mean": -0.0057845263919016629}, "100k": {"var": 21.548280463682879, "count": 1378, "mean": -0.032656023222060959}, "experimentname": "My Exp 1"}
+```
 
 ## Future
+
+I think this solution has more potential than the results may show. Especially when trying to train an agent to collaborate without having something like a challenge agent coevolution would be very interesting.
