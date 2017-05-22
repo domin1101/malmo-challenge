@@ -14,6 +14,7 @@ std::string TensorflowExporter::exportToString(const AbstractNeuralNetwork& neur
 	JSONArray layers;
 	FeedForwardNetworkTopology& networkTopology = dynamic_cast<FeedForwardNetworkTopology&>(neuralNetwork.getNetworkTopology());
 
+	// Go through all layers
 	int layerCount = networkTopology.getLayerCount();
 	for (int l = 0; l < layerCount - 1; l++)
 	{
@@ -21,6 +22,7 @@ std::string TensorflowExporter::exportToString(const AbstractNeuralNetwork& neur
 		JSONArray* weights = new JSONArray();
 		JSONArray* bias = new JSONArray();
 
+		// Build a weight matrix in json (one array per row)
 		for (int r = 0; r < networkTopology.getAllWeights()[l].rows(); r++)
 		{
 			JSONArray* weightsPerNeuron = new JSONArray();
@@ -33,13 +35,15 @@ std::string TensorflowExporter::exportToString(const AbstractNeuralNetwork& neur
 			}
 			weights->addElement(weightsPerNeuron);
 		}
+
+		// Combine them into json objects
 		layer->addAttribute(new JSONAttribute("weights", weights));
 		if (networkTopology.usesBiasNeuron())
 			layer->addAttribute(new JSONAttribute("bias", bias));
-
 		layers.addElement(layer);
 	}
 
+	// Render the JSON file
 	return layers.toString();
 }
 

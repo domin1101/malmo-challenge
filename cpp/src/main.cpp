@@ -5,6 +5,7 @@
 
 int main(int argc, char** argv)
 {
+	// Setup the main app
 	LightBulb::App* app = new LightBulb::App();
 	app->addTrainingPlan(new PigChaseEvolution());
 	app->addExporter(new TensorflowExporter());

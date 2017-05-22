@@ -132,7 +132,7 @@ public:
 	 * \param pigStartLocation The start location of the pig.
 	 * \return True, if valid.
 	 */
-	bool isValidStartConstelation(const Location& popStartLocation, const Location& parStartLocation, const Location& pigStartLocation);
+	bool isValidStartConstellation(const Location& popStartLocation, const Location& parStartLocation, const Location& pigStartLocation);
 	/**
 	 * \brief Returns the euclidiean distance between two locations.
 	 * \param location1 The first location.
