@@ -17,27 +17,22 @@
 
 from common import ENV_AGENT_NAMES
 from evaluation import PigChaseEvaluator
-from environment import PigChaseTopDownStateBuilder, PigChaseSymbolicStateBuilder
+from environment import PigChaseSymbolicStateBuilder
 
 from model import MLPTensor, NeuralNetwork
 from agent import EvolutionAgent
-from malmopy.agent import RandomAgent
-import tensorflow as tf
 
 if __name__ == '__main__':
     # Warn for Agent name !!!
 
     clients = [('127.0.0.1', 10000), ('127.0.0.1', 10001)]
 
-    sess = tf.Session()
-    chain = MLPTensor("agent.json", sess)
-    model = NeuralNetwork(chain, -1)
+    # Setup evolution agent
+    chain = MLPTensor("final_agent.json")
+    model = NeuralNetwork(chain)
     agent = EvolutionAgent(ENV_AGENT_NAMES[1], 3, model)
 
-    sess.run(tf.global_variables_initializer())
-
-    print(chain([[1, 0]]))
-
+    # Run evaluation
     eval = PigChaseEvaluator(clients, agent, agent, PigChaseSymbolicStateBuilder())
     eval.run()
 

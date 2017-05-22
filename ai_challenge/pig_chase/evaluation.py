@@ -70,8 +70,8 @@ class PigChaseEvaluator(object):
         try:
             filepath = abspath(filepath)
             parent = join(pardir, filepath)
-            if not exists(parent):
-                makedirs(parent)
+            #if not exists(parent):
+            #    makedirs(parent)
 
             with open(filepath, 'w') as f_out:
                 dump(metrics, f_out)
@@ -124,7 +124,7 @@ def agent_loop(agent, env, metrics_acc):
     while episode < EVAL_EPISODES:
         # check if env needs reset
         if env.done:
-            print('Episode %d (%.2f)%%' % (episode, (episode / EVAL_EPISODES) * 100.))
+            print('Episode %d (%.2f)%%' % (episode, (episode / EVAL_EPISODES) * 100.), reward)
 
             obs = env.reset()
             while obs is None:

@@ -35,10 +35,10 @@ from malmopy.model import BaseModel
 P_FOCUSED = .75
 CELL_WIDTH = 33
 
-
+# Describes an agent which was trained by evolution
 class EvolutionAgent(BaseAgent):
 
-
+    # Initialize agent with given model
     def __init__(self, name, nb_actions, model, visualizer=None):
 
         assert isinstance(model, BaseModel), 'model should inherit from QModel'
@@ -46,67 +46,65 @@ class EvolutionAgent(BaseAgent):
         super(EvolutionAgent, self).__init__(name, nb_actions, visualizer)
 
         self._model = model
-        self._actions_taken = 0
-        self.matches = []
 
-        # Stats related
-        self._stats_rewards = []
+        # Setup last state memory
+        self.last_state = {'x': 0, 'z': 0, 'yaw': 0}
 
+    # Adds the input values for an entity with the given state to the input array
     def _add_input_for_entity(self, input, state, offset):
+        # Extract data
         x = int(state['x'])
         y = int(state['z'] + 1)
         dir = int(state['yaw'])
 
+        # Substract 1 from x and y, so we get positions between 0 and 7
         x -= 1
         y -= 1
 
+        # Encode x as binary
         input[offset + 0] = int(x == 1 or x == 3 or x == 5 or x == 7)
         input[offset + 1] = int(x == 2 or x == 3 or x == 6 or x == 7)
         input[offset + 2] = int(x >= 4)
+        # Encode y as binary
         input[offset + 3] = int(y == 1 or y == 3 or y == 5 or y == 7)
         input[offset + 4] = int(y == 2 or y == 3 or y == 6 or y == 7)
         input[offset + 5] = int(y >= 4)
+        # Encode dir as binary
         input[offset + 6] = int(dir == 180 or dir == 270)
         input[offset + 7] = int(dir == 90 or dir == 270)
 
-
     def act(self, new_state, reward, done, is_training=False):
-        input = [0] * 24
+        if not len(new_state[1]) is 3:
+            print("Missing state!")
+            return 0
 
-        self._add_input_for_entity(input, new_state[1][1], 0)
-        self._add_input_for_entity(input, new_state[1][0], 8)
-        self._add_input_for_entity(input, new_state[1][2], 16)
+        # Find all entities in the state data
+        pig = [e for e in new_state[1] if e['name'] == "Pig"][0]
+        me = [e for e in new_state[1] if e['name'] == "Agent_2"][0]
+        other_agent = [e for e in new_state[1] if e['name'] == "Agent_1"][0]
+        # Set pig dir to zero as we will not use it
+        pig['yaw'] = 0
 
-        # select the next action
+        # Create input aray
+        input = [0] * 32
+
+        # Fill input data with entities positions and directions
+        self._add_input_for_entity(input, pig, 0)
+        self._add_input_for_entity(input, me, 8)
+        self._add_input_for_entity(input, other_agent, 16)
+        self._add_input_for_entity(input, self.last_state, 24)
+
+        # Evaluate the model
         y = self._model.evaluate([input])
+
+        # Determine the action to use (first one bigger than 0.5)
         new_action = np.argmax(y>0.5)
 
-        self._actions_taken += 1
+        # Set the current state of the other agent as new last state
+        self.last_state = other_agent.copy()
 
+        # Return the action
         return new_action
-
-    def inject_summaries(self, idx):
-        if len(self._stats_rewards) > 0:
-            self.visualize(idx, "%s/episode mean reward" % self.name,
-                           np.asscalar(np.mean(self._stats_rewards)))
-
-            # Reset
-            self._stats_rewards = []
-
-    def copyParametersFrom(self, agent):
-        self._model.copyWeightsFrom(agent._model)
-
-    def mutate_and_assign(self, other):
-        self._model.mutate_and_assign(other._model)
-
-    def randomize(self):
-        self._model.randomize()
-
-    def avg_reward(self):
-        return sum(match['own_reward'] for match in self.matches) / len(self.matches)
-
-    def avg_mutation_strength(self):
-        return self._model.avg_mutation_strength()
 
 class PigChaseQLearnerAgent(QLearnerAgent):
     """A thin wrapper around QLearnerAgent that normalizes rewards to [-1,1]"""
