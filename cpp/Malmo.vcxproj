@@ -105,32 +105,30 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\BackpropagationXor\BackpropagationXorExample.cpp" />
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\pongevolution\Agent.cpp" />
-    <ClCompile Include="src\PongEvolution\AgentMutationAlgorithm.cpp" />
-    <ClCompile Include="src\PongEvolution\TensorflowExporter.cpp" />
-    <ClCompile Include="src\pongevolution\MalmoEvolution.cpp" />
-    <ClCompile Include="src\PongEvolution\MalmoFitnessFunction.cpp" />
-    <ClCompile Include="src\pongevolution\Minecraft.cpp" />
-    <ClCompile Include="src\pongevolution\MinecraftController.cpp" />
-    <ClCompile Include="src\pongevolution\MinecraftFactory.cpp" />
-    <ClCompile Include="src\pongevolution\MinecraftWindow.cpp" />
-    <ClCompile Include="src\PongEvolution\MalmoCombiningStrategy.cpp" />
+    <ClCompile Include="src\PigChase\Agent.cpp" />
+    <ClCompile Include="src\PigChase\AgentMutationAlgorithm.cpp" />
+    <ClCompile Include="src\PigChase\TensorflowExporter.cpp" />
+    <ClCompile Include="src\PigChase\PigChaseEvolution.cpp" />
+    <ClCompile Include="src\PigChase\MalmoFitnessFunction.cpp" />
+    <ClCompile Include="src\PigChase\Malmo.cpp" />
+    <ClCompile Include="src\PigChase\MalmoTopDownController.cpp" />
+    <ClCompile Include="src\PigChase\MalmoTopDownWindowFactory.cpp" />
+    <ClCompile Include="src\PigChase\MalmoTopDownWindow.cpp" />
+    <ClCompile Include="src\PigChase\MalmoCombiningStrategy.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\BackpropagationXor\BackpropagationXorExample.hpp" />
-    <ClInclude Include="src\pongevolution\Agent.hpp" />
-    <ClInclude Include="src\PongEvolution\AgentIO.hpp" />
-    <ClInclude Include="src\PongEvolution\AgentMutationAlgorithm.hpp" />
-    <ClInclude Include="src\PongEvolution\TensorflowExporter.hpp" />
-    <ClInclude Include="src\pongevolution\MalmoEvolution.hpp" />
-    <ClInclude Include="src\PongEvolution\MalmoFitnessFunction.hpp" />
-    <ClInclude Include="src\pongevolution\Minecraft.hpp" />
-    <ClInclude Include="src\pongevolution\MinecraftController.hpp" />
-    <ClInclude Include="src\pongevolution\MinecraftFactory.hpp" />
-    <ClInclude Include="src\pongevolution\MinecraftWindow.hpp" />
-    <ClInclude Include="src\PongEvolution\MalmoCombiningStrategy.hpp" />
+    <ClInclude Include="src\PigChase\Agent.hpp" />
+    <ClInclude Include="src\PigChase\AgentIO.hpp" />
+    <ClInclude Include="src\PigChase\AgentMutationAlgorithm.hpp" />
+    <ClInclude Include="src\PigChase\TensorflowExporter.hpp" />
+    <ClInclude Include="src\PigChase\PigChaseEvolution.hpp" />
+    <ClInclude Include="src\PigChase\MalmoFitnessFunction.hpp" />
+    <ClInclude Include="src\PigChase\Malmo.hpp" />
+    <ClInclude Include="src\PigChase\MalmoTopDownController.hpp" />
+    <ClInclude Include="src\PigChase\MalmoTopDownWindowFactory.hpp" />
+    <ClInclude Include="src\PigChase\MalmoTopDownWindow.hpp" />
+    <ClInclude Include="src\PigChase\MalmoCombiningStrategy.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

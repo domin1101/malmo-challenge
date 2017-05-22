@@ -1,14 +1,14 @@
 // Includes
-#include "PongEvolution/MinecraftWindow.hpp"
-#include "MinecraftController.hpp"
+#include "PigChase/MalmoTopDownWindow.hpp"
+#include "MalmoTopDownController.hpp"
 #include <wx/artprov.h>
 
-BEGIN_EVENT_TABLE(MinecraftWindow, wxFrame)
-EVT_PAINT(MinecraftWindow::paintEvent)
-EVT_SIZE(MinecraftWindow::resize)
+BEGIN_EVENT_TABLE(MalmoTopDownWindow, wxFrame)
+EVT_PAINT(MalmoTopDownWindow::paintEvent)
+EVT_SIZE(MalmoTopDownWindow::resize)
 END_EVENT_TABLE()
 
-wxDEFINE_EVENT(PONG_EVT_FIELD_CHANGED, wxThreadEvent);
+wxDEFINE_EVENT(MALMO_EVT_FIELD_CHANGED, wxThreadEvent);
 
 enum
 {
@@ -16,16 +16,16 @@ enum
 	TOOLBAR_START_WATCHMODE,
 };
 
-MinecraftWindow::MinecraftWindow(MinecraftController& controller_, LightBulb::AbstractWindow& parent)
+MalmoTopDownWindow::MalmoTopDownWindow(MalmoTopDownController& controller_, LightBulb::AbstractWindow& parent)
 	:AbstractSubAppWindow(controller_, getLabel(), parent)
 {
 	panel = nullptr;
-	Bind(PONG_EVT_FIELD_CHANGED, &MinecraftWindow::refreshField, this);
+	Bind(MALMO_EVT_FIELD_CHANGED, &MalmoTopDownWindow::refreshField, this);
 
 	toolbar = CreateToolBar();
 	toolbar->AddTool(TOOLBAR_STOP_WATCHMODE, "WatchMode Off", wxArtProvider::GetBitmap(wxART_GO_FORWARD));
 	toolbar->AddTool(TOOLBAR_START_WATCHMODE, "WatchMode On", wxArtProvider::GetBitmap(wxART_DELETE));
-	toolbar->Bind(wxEVT_TOOL, wxCommandEventFunction(&MinecraftWindow::toolBarClicked), this);
+	toolbar->Bind(wxEVT_TOOL, wxCommandEventFunction(&MalmoTopDownWindow::toolBarClicked), this);
 	toolbar->Realize();
 
 	toolbar->EnableTool(TOOLBAR_START_WATCHMODE, true);
@@ -40,18 +40,18 @@ MinecraftWindow::MinecraftWindow(MinecraftController& controller_, LightBulb::Ab
 	SetSizerAndFit(sizer);
 }
 
-void MinecraftWindow::paintEvent(wxPaintEvent& evt)
+void MalmoTopDownWindow::paintEvent(wxPaintEvent& evt)
 {
 	paintNow();
 }
 
-void MinecraftWindow::resize(wxSizeEvent& evt)
+void MalmoTopDownWindow::resize(wxSizeEvent& evt)
 {
 	Layout();
 	paintNow();
 }
 
-void MinecraftWindow::paintNow()
+void MalmoTopDownWindow::paintNow()
 {
 	if (panel)
 	{
@@ -60,12 +60,12 @@ void MinecraftWindow::paintNow()
 	}
 }
 
-void MinecraftWindow::refreshField(wxThreadEvent& evt)
+void MalmoTopDownWindow::refreshField(wxThreadEvent& evt)
 {
 	paintNow();
 }
 
-void MinecraftWindow::toolBarClicked(wxCommandEvent& evt)
+void MalmoTopDownWindow::toolBarClicked(wxCommandEvent& evt)
 {
 	if (evt.GetId() == TOOLBAR_STOP_WATCHMODE)
 	{
@@ -86,7 +86,7 @@ void MinecraftWindow::toolBarClicked(wxCommandEvent& evt)
 	
 }
 
-void MinecraftWindow::render(wxDC& dc)
+void MalmoTopDownWindow::render(wxDC& dc)
 { 
 	// draw some text
 	dc.SetBackground(*wxWHITE_BRUSH);
@@ -136,7 +136,7 @@ void MinecraftWindow::render(wxDC& dc)
 	}
 }
 
-void MinecraftWindow::drawTriangleForDir(wxDC& dc, int dir, int offsetX, int offsetY, int sizeX, int sizeY)
+void MalmoTopDownWindow::drawTriangleForDir(wxDC& dc, int dir, int offsetX, int offsetY, int sizeX, int sizeY)
 {
 	std::vector<wxPoint> pointList;
 	if (dir == 0)
@@ -166,12 +166,12 @@ void MinecraftWindow::drawTriangleForDir(wxDC& dc, int dir, int offsetX, int off
 	dc.DrawPolygon(pointList.size(), pointList.data());
 }
 
-std::string MinecraftWindow::getLabel()
+std::string MalmoTopDownWindow::getLabel()
 {
-	return "PongGame";
+	return "Malmo TopDown-Viewer";
 }
 
-MinecraftController& MinecraftWindow::getController()
+MalmoTopDownController& MalmoTopDownWindow::getController()
 {
-	return static_cast<MinecraftController&>(*controller);
+	return static_cast<MalmoTopDownController&>(*controller);
 }

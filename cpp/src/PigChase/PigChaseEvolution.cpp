@@ -1,5 +1,5 @@
-#include "MalmoEvolution.hpp"
-#include "MinecraftFactory.hpp"
+#include "PigChaseEvolution.hpp"
+#include "MalmoTopDownWindowFactory.hpp"
 #include <LightBulb/Learning/Evolution/ConstantMutationCommand.hpp>
 #include <LightBulb/Learning/Evolution/EvolutionStrategy/MutationAlgorithm.hpp>
 #include <LightBulb/Learning/Evolution/BestSelectionCommand.hpp>
@@ -9,7 +9,7 @@
 #include <LightBulb/Learning/Evolution/ConstantCreationCommand.hpp>
 #include <LightBulb/Learning/Evolution/EvolutionLearningRule.hpp>
 #include <LightBulb/Learning/Evolution/RandomSelector.hpp>
-#include <PongEvolution/Minecraft.hpp>
+#include <PigChase/Malmo.hpp>
 #include <LightBulb/Learning/Evolution/SharedCoevolutionFitnessFunction.hpp>
 #include <LightBulb/Learning/Evolution/PerfectIndividualFoundCondition.hpp>
 #include <LightBulb/Learning/Evolution/CoevolutionLearningRule.hpp>
@@ -46,11 +46,10 @@
 #define PREFERENCE_MUTATIONSTRENGTH_CHANGESPEED "Mutationstrength changespeed"
 #define PREFERENCE_WEIGHTDECAY_FAC "Weight decay fac"
 #define PREFERENCE_CREATE_UP_TO "Create up to"
-#define PREFERENCE_COMPETITVE_PUNISHMENT "Competitive punishment"
 
 using namespace LightBulb;
 
-AbstractLearningRule* MalmoEvolution::createLearningRate()
+AbstractLearningRule* PigChaseEvolution::createLearningRate()
 {
 
 	EvolutionLearningRuleOptions options;
@@ -82,14 +81,14 @@ AbstractLearningRule* MalmoEvolution::createLearningRate()
 	CoevolutionLearningRuleOptions coevolutionLearningRuleOptions;
 	coevolutionLearningRuleOptions.learningRule1 = learningRule1;
 	coevolutionLearningRuleOptions.learningRule2 = learningRule2;
-	//coevolutionLearningRuleOptions.maxIterationsPerTry = 1300;
+	coevolutionLearningRuleOptions.maxIterationsPerTry = 8000;
 	fillDefaultLearningRuleOptions(coevolutionLearningRuleOptions);
 
 	return new CoevolutionLearningRule(coevolutionLearningRuleOptions);
 }
 
 
-FeedForwardNetworkTopologyOptions MalmoEvolution::getNetworkOptions(int inputSize)
+FeedForwardNetworkTopologyOptions PigChaseEvolution::getNetworkOptions(int inputSize)
 {
 	FeedForwardNetworkTopologyOptions options;
 	options.enableShortcuts = getBooleanPreference(PREFERENCE_SHORTCUT_ENABLE);
@@ -104,21 +103,21 @@ FeedForwardNetworkTopologyOptions MalmoEvolution::getNetworkOptions(int inputSiz
 	return options;
 }
 
-AbstractEvolutionEnvironment* MalmoEvolution::createEnvironment()
+AbstractEvolutionEnvironment* PigChaseEvolution::createEnvironment()
 {
 	cs1 = new MalmoCombiningStrategy(getIntegerPreference(PREFERENCE_COMPETITIONS_SIZE));
 
 	FeedForwardNetworkTopologyOptions options = getNetworkOptions(32);
-	Minecraft* pong1 = new Minecraft(options, false, cs1, new MalmoFitnessFunction(), &hof1, &hof2, getIntegerPreference(PREFERENCE_COMPETITVE_PUNISHMENT));
+	Malmo* malmo1 = new Malmo(options, false, cs1, new MalmoFitnessFunction(), &hof1, &hof2);
 
-	cs1->setSecondEnvironment(static_cast<Minecraft&>(*parasiteEnvironment.get()));
-	cs2->setSecondEnvironment(*pong1);
+	cs1->setSecondEnvironment(static_cast<Malmo&>(*parasiteEnvironment.get()));
+	cs2->setSecondEnvironment(*malmo1);
 
-	return pong1;
+	return malmo1;
 
 }
 
-AbstractEvolutionEnvironment* MalmoEvolution::createParasiteEnvironment()
+AbstractEvolutionEnvironment* PigChaseEvolution::createParasiteEnvironment()
 {
 	cs2 = new MalmoCombiningStrategy(getIntegerPreference(PREFERENCE_COMPETITIONS_SIZE));
 
@@ -126,12 +125,12 @@ AbstractEvolutionEnvironment* MalmoEvolution::createParasiteEnvironment()
 	hof2.reset(new RandomHallOfFameAlgorithm(getIntegerPreference(PREFERENCE_HALLOFFAME_COMPETITIONS_SIZE)));
 
 	FeedForwardNetworkTopologyOptions options = getNetworkOptions(16);
-	return new Minecraft(options, true, cs2, new MalmoFitnessFunction(), &hof2, &hof1, getIntegerPreference(PREFERENCE_COMPETITVE_PUNISHMENT));
+	return new Malmo(options, true, cs2, new MalmoFitnessFunction(), &hof2, &hof1);
 }
 
-MalmoEvolution::MalmoEvolution()
+PigChaseEvolution::PigChaseEvolution()
 {
-	addCustomSubApp(new MinecraftFactory());
+	addCustomSubApp(new MalmoTopDownWindowFactory());
 	addPreference(new DoublePreference(PREFERENCE_MUTATION_PERCENTAGE, 1.8, 0, 3));
 	addPreference(new DoublePreference(PREFERENCE_RECOMBINATION_PERCENTAGE, 0.3, 0, 3));
 	addPreference(new DoublePreference(PREFERENCE_TOPOLOGY_MUTATION_PERCENTAGE, 0, 0, 3));
@@ -145,25 +144,24 @@ MalmoEvolution::MalmoEvolution()
 	addPreference(new IntegerPreference(PREFERENCE_NEURON_COUNT_SECOND_LAYER, 32, 1, 30));
 	addPreference(new DoublePreference(PREFERENCE_MUTATIONSTRENGTH_CHANGESPEED, 1.6, 0, 2)); // 1.6, simple
 	addPreference(new DoublePreference(PREFERENCE_WEIGHTDECAY_FAC, 0, 0.003, 0.3));
-	addPreference(new IntegerPreference(PREFERENCE_COMPETITVE_PUNISHMENT, 0, -25, 0));
 }
 
-std::string MalmoEvolution::getOriginalName() const
+std::string PigChaseEvolution::getOriginalName() const
 {
-	return "Minecraft evolution example";
+	return "Malmo evolution example";
 }
 
-std::string MalmoEvolution::getDescription() const
+std::string PigChaseEvolution::getDescription() const
 {
-	return "Evolution of a Minecraft AI with coevolution.";
+	return "Evolution of a Malmo AI with coevolution.";
 }
 
-AbstractTrainingPlan * MalmoEvolution::createNewFromSameType() const
+AbstractTrainingPlan * PigChaseEvolution::createNewFromSameType() const
 {
-	return new MalmoEvolution();
+	return new PigChaseEvolution();
 }
 
-std::string MalmoEvolution::getLearningRuleName() const
+std::string PigChaseEvolution::getLearningRuleName() const
 {
 	return CoevolutionLearningRule::getName();
 }

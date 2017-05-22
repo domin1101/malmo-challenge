@@ -1,17 +1,19 @@
 #pragma once
 
-#ifndef _PONGGAMEFACTORY_H_
-#define _PONGGAMEFACTORY_H_
+#ifndef _MALMOTOPDOWNWINDOWFACTORY_H_
+#define _MALMOTOPDOWNWINDOWFACTORY_H_
 
 // Includes
 #include "LightBulbApp/Windows/AbstractCustomSubAppFactory.hpp"
 
-// Forward declarations
-
-class MinecraftFactory : public LightBulb::AbstractCustomSubAppFactory
+/**
+ * \brief A factory for creating new top down windows.
+ */
+class MalmoTopDownWindowFactory : public LightBulb::AbstractCustomSubAppFactory
 {
 protected:
 public:
+	// Inherited:
 	LightBulb::AbstractCustomSubApp* createCustomSupApp(LightBulb::AbstractMainApp& mainApp, LightBulb::AbstractTrainingPlan& trainingPlan, LightBulb::AbstractWindow& parent) const override;
 	std::string getLabel() const override;
 };

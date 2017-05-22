@@ -1,13 +1,13 @@
 // Includes
-#include "PongEvolution/Agent.hpp"
-#include "PongEvolution/Minecraft.hpp"
+#include "PigChase/Agent.hpp"
+#include "PigChase/Malmo.hpp"
 
 using namespace LightBulb;
 
-Agent::Agent(FeedForwardNetworkTopologyOptions& options, Minecraft& pong_, bool forceParasite)
-	: AbstractDefaultIndividual(pong_)
+Agent::Agent(FeedForwardNetworkTopologyOptions& options, Malmo& malmo_, bool forceParasite)
+	: AbstractDefaultIndividual(malmo_)
 {
-	currentGame = &pong_;
+	currentGame = &malmo_;
 	buildNeuralNetwork(options);
 	isParasite = static_cast<AbstractCoevolutionEnvironment*>(environment)->isParasiteEnvironment() || forceParasite;
 	
@@ -235,7 +235,7 @@ void Agent::setIsStupid(bool isStupid)
 	this->isStupid = isStupid;
 }
 
-void Agent::setEnv(Minecraft &currentGame_)
+void Agent::setEnv(Malmo &currentGame_)
 {
 	currentGame = &currentGame_;
 }

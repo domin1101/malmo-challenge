@@ -7,11 +7,8 @@
 #include "LightBulb/Learning/Evolution/EvolutionStrategy/MutationAlgorithm.hpp"
 
 /**
-	* \brief  A algorithm which mutates a given individual by executing the corresponding EvolutionStrategy algorithm.
-	* \details The algorithm:\n\n
-	* 1. All mutationStrength values are changed randomly.\n
-	* 2. The new mutationStrength values are added to their corresponding weights.
-	*/
+ * \brief A mutation algorithm which mutates next to the neural network also the agents/pig start positions.
+ */
 class AgentMutationAlgorithm : public LightBulb::MutationAlgorithm
 {
 private:

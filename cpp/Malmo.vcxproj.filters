@@ -18,75 +18,69 @@
     <ClCompile Include="src\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\pongevolution\Agent.cpp">
+    <ClCompile Include="src\PigChase\Agent.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\pongevolution\MalmoEvolution.cpp">
+    <ClCompile Include="src\PigChase\AgentMutationAlgorithm.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\pongevolution\Minecraft.cpp">
+    <ClCompile Include="src\PigChase\MalmoCombiningStrategy.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\pongevolution\MinecraftController.cpp">
+    <ClCompile Include="src\PigChase\MalmoFitnessFunction.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\pongevolution\MinecraftFactory.cpp">
+    <ClCompile Include="src\PigChase\TensorflowExporter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\pongevolution\MinecraftWindow.cpp">
+    <ClCompile Include="src\PigChase\PigChaseEvolution.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\BackpropagationXor\BackpropagationXorExample.cpp">
+    <ClCompile Include="src\PigChase\Malmo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\PongEvolution\AgentMutationAlgorithm.cpp">
+    <ClCompile Include="src\PigChase\MalmoTopDownController.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\PongEvolution\MalmoCombiningStrategy.cpp">
+    <ClCompile Include="src\PigChase\MalmoTopDownWindowFactory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\PongEvolution\MalmoFitnessFunction.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\PongEvolution\TensorflowExporter.cpp">
+    <ClCompile Include="src\PigChase\MalmoTopDownWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\pongevolution\Agent.hpp">
+    <ClInclude Include="src\PigChase\Agent.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\pongevolution\MalmoEvolution.hpp">
+    <ClInclude Include="src\PigChase\AgentIO.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\pongevolution\Minecraft.hpp">
+    <ClInclude Include="src\PigChase\AgentMutationAlgorithm.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\pongevolution\MinecraftController.hpp">
+    <ClInclude Include="src\PigChase\MalmoCombiningStrategy.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\pongevolution\MinecraftFactory.hpp">
+    <ClInclude Include="src\PigChase\MalmoFitnessFunction.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\pongevolution\MinecraftWindow.hpp">
+    <ClInclude Include="src\PigChase\TensorflowExporter.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\BackpropagationXor\BackpropagationXorExample.hpp">
+    <ClInclude Include="src\PigChase\PigChaseEvolution.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\PongEvolution\AgentMutationAlgorithm.hpp">
+    <ClInclude Include="src\PigChase\Malmo.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\PongEvolution\MalmoCombiningStrategy.hpp">
+    <ClInclude Include="src\PigChase\MalmoTopDownController.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\PongEvolution\AgentIO.hpp">
+    <ClInclude Include="src\PigChase\MalmoTopDownWindowFactory.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\PongEvolution\MalmoFitnessFunction.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\PongEvolution\TensorflowExporter.hpp">
+    <ClInclude Include="src\PigChase\MalmoTopDownWindow.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

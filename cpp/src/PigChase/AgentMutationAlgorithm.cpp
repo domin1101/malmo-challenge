@@ -16,7 +16,6 @@ void AgentMutationAlgorithm::execute(LightBulb::AbstractIndividual& individual1)
 	popStartLocation.x += (int)zigguratGenerator->randDouble();
 	popStartLocation.y += (int)zigguratGenerator->randDouble();
 	
-
 	Location parStartLocation = agent.getParStartLocation();
 	parStartLocation.x += (int)zigguratGenerator->randDouble();
 	parStartLocation.y += (int)zigguratGenerator->randDouble();
@@ -44,17 +43,6 @@ void AgentMutationAlgorithm::execute(LightBulb::AbstractIndividual& individual1)
 		agent.setParStartLocation(parStartLocation);
 
 		agent.setIsStupid(getRandomGenerator().randDouble() < 0.25);
-
-		/*if (agent.getIsStupid())
-		{
-			if (zigguratGenerator->randDouble() < 0.75)
-				agent.setIsStupid(false);
-		}
-		else
-		{
-			if (zigguratGenerator->randDouble() < 0.25)
-				agent.setIsStupid(true);
-		}*/
 	}
 }
 

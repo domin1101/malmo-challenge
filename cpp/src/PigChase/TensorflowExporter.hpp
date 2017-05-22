@@ -7,7 +7,7 @@
 #include "LightBulb/IO/Exporter/AbstractNetworkExporter.hpp"
 
 /**
-* \brief Exports a neural network for using in Tensorflow.
+* \brief Exports a neural network for usage in Tensorflow.
 */
 class TensorflowExporter : public LightBulb::AbstractNetworkExporter
 {
