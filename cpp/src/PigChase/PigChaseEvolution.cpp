@@ -23,6 +23,7 @@
 #include "AgentMutationAlgorithm.hpp"
 #include "MalmoCombiningStrategy.hpp"
 #include "MalmoFitnessFunction.hpp"
+#include <LightBulb/Learning/Evolution/SharedCoevolutionFitnessFunction.hpp>
 
 #define PREFERENCE_POPULATION_SIZE "Population size"
 #define PREFERENCE_MUTATION_PERCENTAGE "Mutation percentage"
@@ -88,12 +89,12 @@ FeedForwardNetworkTopologyOptions PigChaseEvolution::getNetworkOptions(int input
 AbstractEvolutionEnvironment* PigChaseEvolution::createEnvironment()
 {
 	// Create first combining strategy
-	cs1 = new MalmoCombiningStrategy(getIntegerPreference(PREFERENCE_COMPETITIONS_SIZE));
+	cs1 = new SharedSamplingCombiningStrategy(getIntegerPreference(PREFERENCE_COMPETITIONS_SIZE));
 
-	FeedForwardNetworkTopologyOptions options = getNetworkOptions(32);
+	FeedForwardNetworkTopologyOptions options = getNetworkOptions(8);
 
 	// Create first environment
-	Malmo* malmo1 = new Malmo(options, false, cs1, new MalmoFitnessFunction(), &hof1, &hof2);
+	Malmo* malmo1 = new Malmo(options, false, cs1, new SharedCoevolutionFitnessFunction(), &hof1, &hof2);
 
 	cs1->setSecondEnvironment(static_cast<Malmo&>(*parasiteEnvironment.get()));
 	cs2->setSecondEnvironment(*malmo1);
@@ -105,16 +106,16 @@ AbstractEvolutionEnvironment* PigChaseEvolution::createEnvironment()
 AbstractEvolutionEnvironment* PigChaseEvolution::createParasiteEnvironment()
 {
 	// Create second combining strategy
-	cs2 = new MalmoCombiningStrategy(getIntegerPreference(PREFERENCE_COMPETITIONS_SIZE));
+	cs2 = new SharedSamplingCombiningStrategy(getIntegerPreference(PREFERENCE_COMPETITIONS_SIZE));
 
 	// Create hall of fame algorithms (not used)
 	hof1.reset(new RandomHallOfFameAlgorithm(getIntegerPreference(PREFERENCE_HALLOFFAME_COMPETITIONS_SIZE)));
 	hof2.reset(new RandomHallOfFameAlgorithm(getIntegerPreference(PREFERENCE_HALLOFFAME_COMPETITIONS_SIZE)));
 
-	FeedForwardNetworkTopologyOptions options = getNetworkOptions(16);
+	FeedForwardNetworkTopologyOptions options = getNetworkOptions(8);
 
 	// Create second environment
-	return new Malmo(options, true, cs2, new MalmoFitnessFunction(), &hof2, &hof1);
+	return new Malmo(options, true, cs2, new SharedCoevolutionFitnessFunction(), &hof2, &hof1);
 }
 
 PigChaseEvolution::PigChaseEvolution()

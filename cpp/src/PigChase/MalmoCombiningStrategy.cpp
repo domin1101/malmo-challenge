@@ -63,54 +63,16 @@ void MalmoCombiningStrategy::combine(LightBulb::AbstractCoevolutionEnvironment& 
 
 void MalmoCombiningStrategy::executeSample(class LightBulb::AbstractCoevolutionEnvironment& simulationEnvironment, std::vector<LightBulb::AbstractIndividual*>& firstIndividuals, std::vector<LightBulb::AbstractIndividual*>& sample)
 {
-	if (!simulationEnvironment.isParasiteEnvironment())
+	// Go through all opponents
+	for (auto secondPlayer = sample.begin(); secondPlayer != sample.end(); secondPlayer++)
 	{
-		matchResults.resize(firstIndividuals.size());
-		// Go through all opponents
-		for (auto secondPlayer = sample.begin(); secondPlayer != sample.end(); secondPlayer++)
+		for (int r = 0; r < simulationEnvironment.getRoundCount(); r++)
 		{
-			for (int r = 0; r < simulationEnvironment.getRoundCount(); r++)
-			{
-				// Simulate the current parasite agains all agents
-				int index = 0;
-				for (auto firstPlayer = firstIndividuals.begin(); firstPlayer != firstIndividuals.end(); firstPlayer++)
-					matchResults[index++] = simulationEnvironment.compareIndividuals(**firstPlayer, **secondPlayer, r);
-
-				index = 0;
-				for (auto firstPlayer = firstIndividuals.begin(); firstPlayer != firstIndividuals.end(); firstPlayer++)
-				{
-					// Normalize the agents reward and set it as their fitness value
-					setResult(**firstPlayer, **secondPlayer, r, matchResults[index] > 0, (matchResults[index] + 25) / 50.0);
-					index++;
-				}
-			}
+			// Simulate the current parasite agains all agents
+			for (auto firstPlayer = firstIndividuals.begin(); firstPlayer != firstIndividuals.end(); firstPlayer++)
+				setResult(**firstPlayer, **secondPlayer, r, false, (simulationEnvironment.compareIndividuals(**firstPlayer, **secondPlayer, r) + 25) / 50.0);
 		}
-	}
-	else
-	{
-		matchResults.resize(sample.size());
-		// Go through all parasites
-		for (auto firstPlayer = firstIndividuals.begin(); firstPlayer != firstIndividuals.end(); firstPlayer++)
-		{
-			for (int r = 0; r < simulationEnvironment.getRoundCount(); r++)
-			{
-				// Simulate the current parasite agains all agents
-				int index = 0;
-				for (auto secondPlayer = sample.begin(); secondPlayer != sample.end(); secondPlayer++)
-					matchResults[index++] = simulationEnvironment.compareIndividuals(**firstPlayer, **secondPlayer, r);
-
-				// Determine the maximum value
-				int max = matchResults.maxCoeff();
-				index = 0;
-				for (auto secondPlayer = sample.begin(); secondPlayer != sample.end(); secondPlayer++)
-				{
-					// Set the match result as normalized difference between the maximum and the match result
-					setResult(**firstPlayer, **secondPlayer, r, matchResults[index] < 0, (max - matchResults[index]) / 50.0);
-					index++;
-				}
-			}
-		}
-	}
+	}	
 }
 
 

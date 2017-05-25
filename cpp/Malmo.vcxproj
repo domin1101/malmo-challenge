@@ -106,8 +106,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\PigChase\AbstractMalmoAgent.cpp" />
     <ClCompile Include="src\PigChase\Agent.cpp" />
     <ClCompile Include="src\PigChase\AgentMutationAlgorithm.cpp" />
+    <ClCompile Include="src\PigChase\ChallengeAgent.cpp" />
+    <ClCompile Include="src\PigChase\Parasite.cpp" />
     <ClCompile Include="src\PigChase\TensorflowExporter.cpp" />
     <ClCompile Include="src\PigChase\PigChaseEvolution.cpp" />
     <ClCompile Include="src\PigChase\MalmoFitnessFunction.cpp" />
@@ -118,9 +121,12 @@
     <ClCompile Include="src\PigChase\MalmoCombiningStrategy.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\PigChase\AbstractMalmoAgent.hpp" />
     <ClInclude Include="src\PigChase\Agent.hpp" />
     <ClInclude Include="src\PigChase\AgentIO.hpp" />
     <ClInclude Include="src\PigChase\AgentMutationAlgorithm.hpp" />
+    <ClInclude Include="src\PigChase\ChallengeAgent.hpp" />
+    <ClInclude Include="src\PigChase\Parasite.hpp" />
     <ClInclude Include="src\PigChase\TensorflowExporter.hpp" />
     <ClInclude Include="src\PigChase\PigChaseEvolution.hpp" />
     <ClInclude Include="src\PigChase\MalmoFitnessFunction.hpp" />

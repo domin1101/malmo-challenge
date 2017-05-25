@@ -22,20 +22,20 @@ template <class Archive>
 void save(Archive& archive, Agent const& agent)
 {
 	archive(cereal::base_class<LightBulb::AbstractDefaultIndividual>(&agent));
-	archive(cereal::make_nvp("parStartLocation", agent.parStartLocation));
-	archive(cereal::make_nvp("popStartLocation", agent.popStartLocation));
-	archive(cereal::make_nvp("pigStartLocation", agent.pigStartLocation));
-	archive(cereal::make_nvp("isStupid", agent.isStupid));
+	//archive(cereal::make_nvp("parStartLocation", agent.parStartLocation));
+	//archive(cereal::make_nvp("popStartLocation", agent.popStartLocation));
+	//archive(cereal::make_nvp("pigStartLocation", agent.pigStartLocation));
+	//archive(cereal::make_nvp("isStupid", agent.isStupid));
 }
 
 template <class Archive>
 void load(Archive& archive, Agent& agent)
 {
 	archive(cereal::base_class<LightBulb::AbstractDefaultIndividual>(&agent));
-	archive(cereal::make_nvp("parStartLocation", agent.parStartLocation));
-	archive(cereal::make_nvp("popStartLocation", agent.popStartLocation));
-	archive(cereal::make_nvp("pigStartLocation", agent.pigStartLocation));
-	archive(cereal::make_nvp("isStupid", agent.isStupid));
+	//archive(cereal::make_nvp("parStartLocation", agent.parStartLocation));
+	//archive(cereal::make_nvp("popStartLocation", agent.popStartLocation));
+	//archive(cereal::make_nvp("pigStartLocation", agent.pigStartLocation));
+	//archive(cereal::make_nvp("isStupid", agent.isStupid));
 }
 
 #include "LightBulb/IO/UsedArchives.hpp"

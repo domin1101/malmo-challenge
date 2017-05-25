@@ -14,6 +14,8 @@
 #include "LightBulb/IO/UseParentSerialization.hpp"
 #include "LightBulb/NetworkTopology/FeedForwardNetworkTopology.hpp"
 #include "Agent.hpp"
+#include "ChallengeAgent.hpp"
+#include "Parasite.hpp"
 
 // Forward declarations
 class Agent;
@@ -47,6 +49,7 @@ enum Ending
 class Malmo : public LightBulb::AbstractCoevolutionEnvironment, public LightBulb::Observable<MalmoEvents, Malmo>
 {
 private:
+	std::unique_ptr<ChallengeAgent> challengeAgent;
 	/**
 	 * \brief Stores the basic structure of the environment. (0: fence, 1: walkable, 2: lapis)
 	 */
@@ -54,11 +57,11 @@ private:
 	/**
 	 * \brief Points to the current first agent.
 	 */
-	Agent* currentAi1;
+	AbstractMalmoAgent* currentAi1;
 	/**
 	* \brief Points to the current second agent.
 	*/
-	Agent* currentAi2;
+	AbstractMalmoAgent* currentAi2;
 	/**
 	 * \brief Contains the current player (0 => first agent, 1 => second agent)
 	 */
@@ -98,7 +101,7 @@ private:
 	/**
 	 * \brief Points to the best individual of the last iteration.
 	 */
-	LightBulb::AbstractIndividual* lastBestIndividual;
+	AbstractMalmoAgent* lastBestIndividual;
 	/**
 	 * \brief Cache used for the A* algorithm.
 	 */
@@ -115,7 +118,7 @@ protected:
 	 * \param startPlayer Determines which player should start (0 = first, 1 = second)
 	 * \return The total reward of the non parasite.
 	 */
-	int simulateGame(Agent& ai1, Agent& ai2, int startPlayer);
+	int simulateGame(AbstractMalmoAgent& ai1, AbstractMalmoAgent& ai2, Parasite& parasite, int startPlayer);
 	// Inherited:
 	LightBulb::AbstractIndividual* createNewIndividual() override;
 	int doCompare(LightBulb::AbstractIndividual& obj1, LightBulb::AbstractIndividual& obj2, int round) override;
@@ -162,10 +165,8 @@ public:
 	void agentMovedTo(int x, int y, int dx, int dy);
 	/**
 	 * \brief Sets up a new game.
-	 * \param ai1 The first agent.
-	 * \param ai2 The second agent.
 	 */
-	void startNewGame(Agent &ai1, Agent &ai2);
+	void startNewGame(Parasite& parasite);
 	/**
 	 * \brief Returns the A* cache which is used by all agents.
 	 * \return The A* cache.
@@ -176,7 +177,7 @@ public:
 	 * \param agent The agent.
 	 * \return The reward for the agent.
 	 */
-	int getReward(Agent &agent);
+	int getReward(AbstractMalmoAgent &agent);
 	/**
 	 * \brief Returns if the current match is over.
 	 * \param ai1 The first agent.
@@ -185,7 +186,7 @@ public:
 	 * \param startPlayer The player which started.
 	 * \return True, if match is over.
 	 */
-	bool isDone(Agent &ai1, Agent &ai2, int currentPlayer, int startPlayer);
+	bool isDone(AbstractMalmoAgent &ai1, AbstractMalmoAgent &ai2, int currentPlayer, int startPlayer);
 	/**
 	 * \brief Returns if the pig has been caught.
 	 * \return True, if it is caught.
@@ -216,12 +217,12 @@ public:
 	 * \brief Returns the current first agent.
 	 * \return The first agent.
 	 */
-	const Agent& getAgent1();
+	const AbstractMalmoAgent& getAgent1();
 	/**
 	 * \brief Returns the current second agent.
 	 * \return The second agent. 
 	 */
-	const Agent& getAgent2();
+	const AbstractMalmoAgent& getAgent2();
 	/**
 	 * \brief Returns the location of the pig.
 	 * \return The location of the pig.

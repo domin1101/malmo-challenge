@@ -7,6 +7,7 @@
 #include <chrono>
 #include <thread>
 #include <numeric>
+#include "Parasite.hpp"
 
 #define FIELD_SIZE 9
 #define DOUBLEFIELD_SIZE 2 * FIELD_SIZE
@@ -15,7 +16,10 @@ using namespace LightBulb;
 
 AbstractIndividual* Malmo::createNewIndividual()
 {
-	return new Agent(*options, *this);
+	if (isParasiteEnvironment())	
+		return new Parasite(*options, *this);
+	else
+		return new Agent(*options, *this);
 }
 
 std::vector<std::string> Malmo::getDataSetLabels() const
@@ -38,6 +42,7 @@ Malmo::Malmo(FeedForwardNetworkTopologyOptions& options_, bool isParasiteEnviron
 	: AbstractCoevolutionEnvironment(isParasiteEnvironment_, combiningStrategy_, fitnessFunction_, hallOfFameToAddAlgorithm_, hallOfFameToChallengeAlgorithm_)
 {
 	options.reset(new FeedForwardNetworkTopologyOptions(options_));
+	challengeAgent.reset(new ChallengeAgent(*this));
 
 	// Build the default field structure
 	fields.resize(FIELD_SIZE, std::vector<int>(FIELD_SIZE, 0));
@@ -80,7 +85,14 @@ Malmo::Malmo(FeedForwardNetworkTopologyOptions& options_, bool isParasiteEnviron
 
 int Malmo::doCompare(AbstractIndividual& obj1, AbstractIndividual& obj2, int round)
 {
-	return simulateGame(static_cast<Agent&>(obj1), static_cast<Agent&>(obj2), round);
+	AbstractIndividual& parasite = isParasiteEnvironment() ? obj1 : obj2;
+	AbstractIndividual& nonparasite = !isParasiteEnvironment() ? obj1 : obj2;
+	int nonparasiteReward = simulateGame(static_cast<Agent&>(nonparasite), *challengeAgent, static_cast<Parasite&>(parasite), round);
+	int parasiteReward = simulateGame(static_cast<Agent&>(parasite), *challengeAgent, static_cast<Parasite&>(parasite), round);
+	if (isParasiteEnvironment())
+		return parasiteReward > nonparasiteReward ? 1 : -1;
+	else
+		return parasiteReward <= nonparasiteReward ? 1 : -1;
 }
 
 int Malmo::getRoundCount() const
@@ -89,23 +101,19 @@ int Malmo::getRoundCount() const
 	return 2;
 }
 
-int Malmo::simulateGame(Agent& ai1, Agent& ai2, int startPlayer)
+int Malmo::simulateGame(AbstractMalmoAgent& ai1, AbstractMalmoAgent& ai2, Parasite& parasite, int startPlayer)
 {
 	currentAi1 = &ai1;
 	currentAi2 = &ai2;
 
 	// Reset AIs.
-	ai2.resetNN();
-	ai1.resetNN();
+	ai1.reset();
 	ai1.setEnv(*this);
+	ai2.reset();
 	ai2.setEnv(*this);
 
 	// Reset the game
-	startNewGame(ai1, ai2);
-
-	// Mirror start player in the parasite environment (So that startplayer = 0 always means that the non-parasite agent starts)
-	if (parasiteEnvironment)
-		startPlayer = 1 - startPlayer;
+	startNewGame(parasite);
 
 	// Set start player as new current player
 	currentPlayer = startPlayer;
@@ -121,7 +129,7 @@ int Malmo::simulateGame(Agent& ai1, Agent& ai2, int startPlayer)
 	for (int t = 0; t < 50; t++)
 	{
 		// Determine the current agent
-		Agent& currentAgent = currentPlayer == 0 ? ai1 : ai2;
+		AbstractMalmoAgent& currentAgent = currentPlayer == 0 ? ai1 : ai2;
 
 		// Let the agent act
 		currentAgent.doNNCalculation();
@@ -129,7 +137,7 @@ int Malmo::simulateGame(Agent& ai1, Agent& ai2, int startPlayer)
 		rewards[currentPlayer] += getReward(currentAgent);
 
 		// Increase the step counter
-		if (currentPlayer == 0 && !isParasiteEnvironment() || currentPlayer == 1 && isParasiteEnvironment())
+		if (currentPlayer == 0)
 			stepCounter++;
 
 		// Check if we have run into a never ending loop and stop the match if thats the case (Performance!)
@@ -180,21 +188,20 @@ int Malmo::simulateGame(Agent& ai1, Agent& ai2, int startPlayer)
 		rewards[currentPlayer] += 25;
 	}
 
-	// Calculate statistics.
-	bestReward = std::max(bestReward, rewards[0]);
-	totalReward += rewards[0];
-	matchCount++;
+	if (isParasiteEnvironment() && &ai1 == &parasite || !isParasiteEnvironment() && &ai1 != &parasite)
+	{
+		// Calculate statistics.
+		bestReward = std::max(bestReward, rewards[0]);
+		totalReward += rewards[0];
+		matchCount++;
+	}
 
-	// Return reward of non parasite
-	if (parasiteEnvironment)
-		return rewards[1];
-	else
-		return rewards[0];
+	return rewards[0];
 }
 
 int Malmo::rateIndividual(AbstractIndividual& individual)
 {
-	lastBestIndividual = &individual;
+	lastBestIndividual = &static_cast<Agent&>(individual);
 	// Add statistics
 	learningState->addData(std::string(parasiteEnvironment ? DATASET_PARASITE_PREFIX : "") + DATASET_BEST_REWARD, static_cast<double>(bestReward));
 	learningState->addData(std::string(parasiteEnvironment ? DATASET_PARASITE_PREFIX : "") + DATASET_AVG_REWARD, static_cast<double>(totalReward) / matchCount);
@@ -208,7 +215,7 @@ int Malmo::rateIndividual(AbstractIndividual& individual)
 	if (!isParasiteEnvironment())
 	{
 		inRating = true;
-		Agent parasite(*options, *this, true);
+		Parasite parasite(*options, *this);
 		int rewards = 0;
 		int steps = 0;
 		int lapisEndings = 0;
@@ -218,7 +225,7 @@ int Malmo::rateIndividual(AbstractIndividual& individual)
 		for (int i = 0; i < 100; i++)
 		{
 			parasite.randomizeState();
-			rewards += simulateGame(static_cast<Agent&>(individual), parasite, getRandomGenerator().randInt(0, 1));
+			rewards += simulateGame(static_cast<Agent&>(individual), *challengeAgent, parasite, getRandomGenerator().randInt(0, 1));
 			steps += stepCounter;
 			if (lastEnding == CAUGHT)
 				caughtEndings++;
@@ -241,7 +248,7 @@ int Malmo::getStepCounter() const
 	return stepCounter;
 }
 
-bool Malmo::isDone(Agent& ai1, Agent& ai2, int currentPlayer, int startPlayer)
+bool Malmo::isDone(AbstractMalmoAgent& ai1, AbstractMalmoAgent& ai2, int currentPlayer, int startPlayer)
 {
 	// Game is over when the pig is caught or one player has step into a lapis lazuli field
 	return isPigCaught() || (currentPlayer == startPlayer && (fields[ai1.getLocation().x][ai1.getLocation().y + 1] == 2 || fields[ai2.getLocation().x][ai2.getLocation().y + 1] == 2));
@@ -250,7 +257,7 @@ bool Malmo::isDone(Agent& ai1, Agent& ai2, int currentPlayer, int startPlayer)
 bool Malmo::isPigCaught()
 {
 	// Check if all four directions are blocked
-	return isFieldBlockedForPig(pig.x, pig.y + 2) && isFieldBlockedForPig(pig.x, pig.y) && isFieldBlockedForPig(pig.x - 1, pig.y + 1) && isFieldBlockedForPig(pig.x + 1, pig.y + 1);
+	return false && isFieldBlockedForPig(pig.x, pig.y + 2) && isFieldBlockedForPig(pig.x, pig.y) && isFieldBlockedForPig(pig.x - 1, pig.y + 1) && isFieldBlockedForPig(pig.x + 1, pig.y + 1);
 }
 
 bool Malmo::isFieldBlockedForPig(int x, int y)
@@ -270,26 +277,24 @@ void Malmo::agentMovedTo(int x, int y, int dx, int dy)
 	}
 }
 
-void Malmo::startNewGame(Agent& ai1, Agent& ai2)
+void Malmo::startNewGame(Parasite& parasite)
 {
 	// Retrieve start locations from the current parasite
 	Location popStartLocation, parStartLocation;
-	if (isParasiteEnvironment())
-	{
-		parStartLocation = ai1.getParStartLocation();
-		popStartLocation = ai1.getPopStartLocation();
-		pig = ai1.getPigStartLocation();
-	}
-	else
-	{
-		parStartLocation = ai2.getParStartLocation();
-		popStartLocation = ai2.getPopStartLocation();
-		pig = ai2.getPigStartLocation();
-	}
+
+	parStartLocation = parasite.getParStartLocation();
+	popStartLocation = parasite.getPopStartLocation();
+	pig = parasite.getPigStartLocation();
+
+	/*popStartLocation.x = 4;
+	popStartLocation.y = 5;
+	popStartLocation.dir = 0;*/
 
 	// Set locations
-	ai1.setLocation(isParasiteEnvironment() ? parStartLocation : popStartLocation);
-	ai2.setLocation(isParasiteEnvironment() ? popStartLocation : parStartLocation);
+	currentAi1->setLocation(popStartLocation);
+	currentAi2->setLocation(parStartLocation);
+
+	static_cast<ChallengeAgent*>(currentAi2)->setIsStupid(parasite.getIsStupid());
 }
 
 std::map<Location, std::map<Location, int>>& Malmo::getAStarCache()
@@ -318,26 +323,26 @@ void Malmo::setInputForAgent(std::vector<double>& input, int x, int y, int dir, 
 void Malmo::getNNInput(std::vector<double>& input)
 {
 	// Resize the input to the proper size
-	input.resize(32);
+	input.resize(8);
 
 	// Add all positions to the input depending on the current player
 	if (currentPlayer == 0)
 	{
-		setInputForAgent(input, pig.x, pig.y + 1, 0, 0);
-		setInputForAgent(input, currentAi1->getLocation().x, currentAi1->getLocation().y + 1, currentAi1->getLocation().dir, 8);
-		setInputForAgent(input, currentAi2->getLocation().x, currentAi2->getLocation().y + 1, currentAi2->getLocation().dir, 16);
-		setInputForAgent(input, currentAi2->getPrevLocation().x, currentAi2->getPrevLocation().y + 1, currentAi2->getPrevLocation().dir, 24);
+		//setInputForAgent(input, pig.x, pig.y + 1, 0, 0);
+		setInputForAgent(input, currentAi1->getLocation().x, currentAi1->getLocation().y + 1, currentAi1->getLocation().dir, 0);
+		//setInputForAgent(input, currentAi2->getLocation().x, currentAi2->getLocation().y + 1, currentAi2->getLocation().dir, 16);
+		//setInputForAgent(input, currentAi2->getPrevLocation().x, currentAi2->getPrevLocation().y + 1, currentAi2->getPrevLocation().dir, 24);
 	}
 	else
 	{
-		setInputForAgent(input, pig.x, pig.y + 1, 0, 0);
-		setInputForAgent(input, currentAi2->getLocation().x, currentAi2->getLocation().y + 1, currentAi2->getLocation().dir, 8);
-		setInputForAgent(input, currentAi1->getLocation().x, currentAi1->getLocation().y + 1, currentAi1->getLocation().dir, 16);
-		setInputForAgent(input, currentAi1->getPrevLocation().x, currentAi1->getPrevLocation().y + 1, currentAi1->getPrevLocation().dir, 24);		
+		//setInputForAgent(input, pig.x, pig.y + 1, 0, 0);
+		setInputForAgent(input, currentAi2->getLocation().x, currentAi2->getLocation().y + 1, currentAi2->getLocation().dir, 0);
+		//setInputForAgent(input, currentAi1->getLocation().x, currentAi1->getLocation().y + 1, currentAi1->getLocation().dir, 16);
+		//setInputForAgent(input, currentAi1->getPrevLocation().x, currentAi1->getPrevLocation().y + 1, currentAi1->getPrevLocation().dir, 24);		
 	}
 }
 
-int Malmo::getReward(Agent &agent)
+int Malmo::getReward(AbstractMalmoAgent &agent)
 {
 	// Return always -1 + 25 if the pig is caught + 5 if the agent stands on lapis
 	return -1 + (isPigCaught() ? 25 : 0) + (fields[agent.getLocation().x][agent.getLocation().y + 1] == 2 ? 5 : 0);
@@ -364,12 +369,12 @@ const std::vector<std::vector<int>> &Malmo::getField()
 	return fields;
 }
 
-const Agent &Malmo::getAgent1()
+const AbstractMalmoAgent &Malmo::getAgent1()
 {
 	return *currentAi1;
 }
 
-const Agent &Malmo::getAgent2()
+const AbstractMalmoAgent &Malmo::getAgent2()
 {
 	return *currentAi2;
 }
